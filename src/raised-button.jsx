@@ -132,7 +132,7 @@ let RaisedButton = React.createClass({
       overlay: {
         transition: Transitions.easeOut(),
         top: 0,
-        transform: 'translate3d(0, 0, 0)'
+        transform: 'translate3d(0, 0, 0)',
       },
       overlayWhenHovered: {
         backgroundColor: ColorManipulator.fade(this._getLabelColor(), amount),
