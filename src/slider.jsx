@@ -228,10 +228,7 @@ let Slider = React.createClass({
     let sliderStyles = this.mergeAndPrefix(styles.root, this.props.style);
     let trackStyles = styles.track;
     let filledStyles = styles.filled;
-    let remainingStyles = this.mergeAndPrefix(
-      styles.remaining,
-      percent === 0 && styles.percentZeroRemaining
-    );
+    let remainingStyles = styles.remaining;
     let handleStyles = percent === 0 ? this.mergeAndPrefix(
       styles.handle,
       styles.handleWhenPercentZero,
