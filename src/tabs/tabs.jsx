@@ -115,16 +115,6 @@ let Tabs = React.createClass({
       }
     }, this);
 
-    let inkBar = this.state.selectedIndex !== -1 ? (
-      <InkBar
-        left={left}
-        width={width}
-        style={inkBarStyle}/>
-    ) : null;
-
-    let inkBarContainerWidth = tabItemContainerStyle ?
-      tabItemContainerStyle.width : '100%';
-
     return (
       <div
         {...other}
