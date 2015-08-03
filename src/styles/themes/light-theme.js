@@ -34,6 +34,9 @@ let LightTheme = {
         textColor: Colors.darkWhite,
         height: spacing.desktopKeylineIncrement,
       },
+      avatar: {
+        borderColor: 'rgba(0, 0, 0, 0.08)',
+      },
       button: {
         height: 36,
         minWidth: 88,
@@ -70,6 +73,9 @@ let LightTheme = {
         iconColor: Colors.white,
         secondaryColor: palette.primary1Color,
         secondaryIconColor: Colors.white,
+      },
+      inkBar: {
+        backgroundColor: Colors.yellow200,
       },
       leftNav: {
         width: spacing.desktopKeylineIncrement * 4,
@@ -140,7 +146,7 @@ let LightTheme = {
       tableHeaderColumn: {
         textColor: Colors.lightBlack,
         height: 56,
-        spacing: 28,
+        spacing: 24,
       },
       tableFooter: {
         borderColor: palette.borderColor,
@@ -155,7 +161,7 @@ let LightTheme = {
       },
       tableRowColumn: {
         height: 48,
-        spacing: 28,
+        spacing: 24,
       },
       timePicker: {
         color: Colors.white,

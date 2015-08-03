@@ -14,7 +14,6 @@ let ContentSend = require('svg-icons/content/send');
 let EditorInsertChart = require('svg-icons/editor/insert-chart');
 let FileFolder = require('svg-icons/file/folder');
 let MoreVertIcon = require('svg-icons/navigation/more-vert');
-let ToggleStarBorder = require('svg-icons/toggle/star-border');
 
 let {
   Avatar,
@@ -46,8 +45,8 @@ class ListsPage extends React.Component {
         <ListItem primaryText="Inbox" leftIcon={<ContentInbox />} />
         <ListItem primaryText="Starred" leftIcon={<ActionGrade />} />
         <ListItem primaryText="Sent mail" leftIcon={<ContentSend />} />
-        <ListItem primaryText="Drafts"leftIcon={<ContentDrafts />} />
-        <ListItem primaryText="Inbox"leftIcon={<ContentInbox />} />
+        <ListItem primaryText="Drafts" leftIcon={<ContentDrafts />} />
+        <ListItem primaryText="Inbox" leftIcon={<ContentInbox />} />
       </List>
       <ListDivider />
       <List>

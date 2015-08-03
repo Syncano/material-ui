@@ -111,6 +111,7 @@ let IconMenu = React.createClass({
     let menu = open ? (
       <Menu
         {...other}
+        animated={true}
         initiallyKeyboardFocused={this.state.menuInitiallyKeyboardFocused}
         onEscKeyDown={this._handleMenuEscKeyDown}
         onItemTouchTap={this._handleItemTouchTap}
@@ -132,6 +133,10 @@ let IconMenu = React.createClass({
         <ReactTransitionGroup>{menu}</ReactTransitionGroup>
       </div>
     );
+  },
+
+  isOpen() {
+    return this.state.open;
   },
 
   close(isKeyboard) {
