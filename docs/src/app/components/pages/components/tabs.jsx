@@ -94,6 +94,18 @@ class TabsPage extends React.Component {
             header: 'optional',
             desc: 'Makes Tabs controllable and selects the tab whose value prop matches this prop.'
           },
+          {
+            name: 'contentContainerClassName',
+            type: 'string',
+            header: 'optional',
+            desc: 'The className to add to the content\'s container.'
+          },
+          {
+            name: 'tabWidth',
+            type: 'number',
+            header: 'optional',
+            desc: 'Specifiy tabWidth to set each tab to a set number of pixels. Tab Width is set by default to an even distribution of the parent Tabs container. If tabWidth is set but the total width of all tabs is greater than the container, tabWidth will revert back to default'
+          }
         ]
       },
       {
