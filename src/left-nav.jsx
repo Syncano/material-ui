@@ -197,7 +197,7 @@ let LeftNav = React.createClass({
   },
 
   _onMenuItemClick(e, key, payload) {
-    if (this.props.onChange && this.props.selectedIndex !== key) {
+    if (this.props.onChange) {
       this.props.onChange(e, key, payload);
     }
     if (!this.props.docked) this.close();
