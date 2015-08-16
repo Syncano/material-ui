@@ -17,7 +17,13 @@ let Tabs = React.createClass({
     contentContainerStyle: React.PropTypes.object,
     initialSelectedIndex: React.PropTypes.number,
     inkBarStyle: React.PropTypes.object,
-    contentContainerClassName: React.PropTypes.string,
+    tabItemContainerStyle: React.PropTypes.object,
+  },
+
+  getDefaultProps() {
+    return {
+      initialSelectedIndex : 0,
+    };
   },
 
   getInitialState(){
@@ -28,8 +34,8 @@ let Tabs = React.createClass({
       selectedIndex: valueLink.value ?
         this._getSelectedIndex(this.props) :
         initialIndex < this.getTabCount() ?
-        initialIndex :
-        0,
+          initialIndex :
+          0,
     };
   },
 
@@ -63,7 +69,7 @@ let Tabs = React.createClass({
       tabWidth,
       tabItemContainerStyle,
       ...other,
-    } = this.props;
+      } = this.props;
 
     let themeVariables = this.context.muiTheme.component.tabs;
     let styles = {
@@ -90,8 +96,8 @@ let Tabs = React.createClass({
       if (tab.type.displayName === "Tab") {
         if (!tab.props.value && tabValue && process.env.NODE_ENV !== 'production') {
           console.error('Tabs value prop has been passed, but Tab ' + index +
-          ' does not have a value prop. Needs value if Tabs is going' +
-          ' to be a controlled component.');
+            ' does not have a value prop. Needs value if Tabs is going' +
+            ' to be a controlled component.');
         }
 
         tabContent.push(tab.props.children ?
@@ -111,7 +117,7 @@ let Tabs = React.createClass({
       else {
         let type = tab.type.displayName || tab.type;
         console.error('Tabs only accepts Tab Components as children. Found ' +
-              type + ' as child number ' + (index + 1) + ' of Tabs');
+          type + ' as child number ' + (index + 1) + ' of Tabs');
       }
     }, this);
 
@@ -122,8 +128,10 @@ let Tabs = React.createClass({
         <div style={this.mergeAndPrefix(styles.tabItemContainer, tabItemContainerStyle)}>
           {tabs}
         </div>
-        <InkBar left={left} width={width} style={this.props.inkBarStyle}/>
-        <div style={this.mergeAndPrefix(this.props.contentContainerStyle)} className={this.props.contentContainerClassName}>
+        <div style={{width: inkBarContainerWidth}}>
+          {inkBar}
+        </div>
+        <div style={this.mergeAndPrefix(contentContainerStyle)}>
           {tabContent}
         </div>
       </div>
@@ -159,7 +167,7 @@ let Tabs = React.createClass({
   _getSelected(tab, index) {
     let valueLink = this.getValueLink(this.props);
     return valueLink.value ? valueLink.value === tab.props.value :
-      this.state.selectedIndex === index;
+    this.state.selectedIndex === index;
   },
 
 });
