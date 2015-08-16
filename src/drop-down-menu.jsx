@@ -26,6 +26,7 @@ let DropDownMenu = React.createClass({
     autoWidth: React.PropTypes.bool,
     disabled: React.PropTypes.bool,
     onChange: React.PropTypes.func,
+    menuStyle: React.PropTypes.object,
     menuItems: React.PropTypes.array.isRequired,
     menuItemStyle: React.PropTypes.object,
     underlineStyle:React.PropTypes.object,
@@ -212,7 +213,7 @@ let DropDownMenu = React.createClass({
             autoWidth={this.props.autoWidth}
             selectedIndex={selectedIndex}
             menuItems={menuItems}
-            style={this.mergeAndPrefix(styles.menu, this.props.menu)}
+            style={this.mergeAndPrefix(styles.menu, this.props.menuStyle)}
             menuItemStyle={this.mergeAndPrefix(styles.menuItem, this.props.menuItemStyle)}
             hideable={true}
             visible={this.state.open}
