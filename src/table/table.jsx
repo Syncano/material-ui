@@ -24,6 +24,7 @@ let Table = React.createClass({
     onRowSelection: React.PropTypes.func,
     selectable: React.PropTypes.bool,
     style: React.PropTypes.object,
+    tableWrapperStyle: React.PropTypes.object,
   },
 
   getDefaultProps() {
@@ -78,6 +79,7 @@ let Table = React.createClass({
       fixedFooter,
       fixedHeader,
       style,
+      tableWrapperStyle,
       ...other,
     } = this.props;
     let classes = 'mui-table';
@@ -104,6 +106,7 @@ let Table = React.createClass({
     if (!tBody && !tHead) return null;
 
     let mergedTableStyle = this.mergeAndPrefix(styles.root, style);
+    let mergedTableWrapperStyle = this.mergeAndPrefix(styles.tableWrapper, tableWrapperStyle);
     let headerTable, footerTable;
     let inlineHeader, inlineFooter;
     if (fixedHeader) {
@@ -134,7 +137,7 @@ let Table = React.createClass({
     }
 
     return (
-      <div className="mui-table-wrapper" style={styles.tableWrapper}>
+      <div className="mui-table-wrapper" style={mergedTableWrapperStyle}>
         {headerTable}
         <div className="mui-body-table" style={styles.bodyTable}>
           <table className={classes} style={mergedTableStyle}>
