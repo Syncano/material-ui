@@ -4,12 +4,6 @@ let WindowListenable = require('../mixins/window-listenable');
 let TimePickerDialog = require('./time-picker-dialog');
 let TextField = require('../text-field');
 
-
-let emptyTime = new Date();
-emptyTime.setHours(0);
-emptyTime.setMinutes(0);
-
-
 let TimePicker = React.createClass({
 
   mixins: [StylePropable, WindowListenable],
@@ -31,7 +25,6 @@ let TimePicker = React.createClass({
 
   getDefaultProps() {
     return {
-      defaultTime: emptyTime,
       format: 'ampm',
       pedantic: false,
     };
