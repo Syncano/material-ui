@@ -7,3 +7,9 @@
 <TimePicker
   format="24hr"
   hintText="24hr Format" />
+
+//The 12hr format
+<TimePicker
+  format="ampm"
+  hintText="12hr Format"
+  emptyDefaultTime={true} />
