@@ -86,7 +86,7 @@ let TimePicker = React.createClass({
       ...other,
     } = this.props;
 
-    var defaultInputValue = this.props.defaultTime && !this.props.emptyDefaultTime ? this.formatTime(this.props.defaultTime) : undefined;
+    let defaultInputValue = this.props.defaultTime && !this.props.emptyDefaultTime ? this.formatTime(this.props.defaultTime) : undefined;
 
     return (
       <div >
