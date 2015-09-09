@@ -18,6 +18,7 @@ let TimePicker = React.createClass({
     defaultTime: React.PropTypes.object,
     format: React.PropTypes.oneOf(['ampm', '24hr']),
     pedantic: React.PropTypes.bool,
+    emptyDefaultTime: React.PropTypes.bool,
     onFocus: React.PropTypes.func,
     onTouchTap: React.PropTypes.func,
     onChange: React.PropTypes.func,
@@ -32,6 +33,7 @@ let TimePicker = React.createClass({
   getDefaultProps() {
     return {
       defaultTime: emptyTime,
+      emptyDefaultTime: false,
       format: 'ampm',
       pedantic: false,
     };
@@ -39,7 +41,7 @@ let TimePicker = React.createClass({
 
   getInitialState() {
     return {
-      time: this.props.defaultTime,
+      time: this.props.defaultTime && !this.props.emptyDefaultTime ? this.props.defaultTime : undefined,
       dialogTime: new Date(),
     };
   },
@@ -84,11 +86,7 @@ let TimePicker = React.createClass({
       ...other,
     } = this.props;
 
-    let defaultInputValue;
-
-    if (this.props.defaultTime) {
-      defaultInputValue = this.formatTime(this.props.defaultTime);
-    }
+    let defaultInputValue = this.props.defaultTime && !this.props.emptyDefaultTime ? this.formatTime(this.props.defaultTime) : undefined;
 
     return (
       <div >
