@@ -99,6 +99,12 @@ class IconMenus extends React.Component {
             header: 'default: 200',
             desc: 'Sets the delay in milliseconds before closing the menu when an item is clicked.'
           },
+          {
+            name: 'animated',
+            type: 'boolean',
+            header: 'default: true',
+            desc: 'Allow to disable component animations.'
+          },
         ]
       },
       {
@@ -483,6 +489,22 @@ class IconMenus extends React.Component {
             <MenuItem value="WV" primaryText="West Virginia" />
             <MenuItem value="WI" primaryText="Wisconsin" />
             <MenuItem value="WY" primaryText="Wyoming" />
+          </IconMenu>
+        </div>
+
+        <p>Disabled animations</p>
+        <div>
+          <IconMenu
+            iconButtonElement={iconButtonElement}
+            openDirection="bottom-right"
+            animated={false}>
+            <MenuItem primaryText="Home" />
+            <MenuItem primaryText="Back" />
+            <MenuItem primaryText="Forward" disabled={true} />
+            <MenuDivider />
+            <MenuItem primaryText="Recently closed" disabled={true} />
+            <MenuItem primaryText="Google" disabled={true} />
+            <MenuItem primaryText="YouTube" />
           </IconMenu>
         </div>
 

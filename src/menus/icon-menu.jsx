@@ -42,6 +42,7 @@ let IconMenu = React.createClass({
       onMouseUp: () => {},
       onTouchTap: () => {},
       touchTapCloseDelay: 200,
+      animated: true,
     };
   },
 
@@ -111,7 +112,6 @@ let IconMenu = React.createClass({
     let menu = open ? (
       <Menu
         {...other}
-        animated={true}
         initiallyKeyboardFocused={this.state.menuInitiallyKeyboardFocused}
         onEscKeyDown={this._handleMenuEscKeyDown}
         onItemTouchTap={this._handleItemTouchTap}
