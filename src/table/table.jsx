@@ -79,6 +79,7 @@ let Table = React.createClass({
       fixedFooter,
       fixedHeader,
       style,
+      bodyTableStyle,
       ...other,
     } = this.props;
     let classes = 'mui-table';
@@ -138,7 +139,7 @@ let Table = React.createClass({
     return (
       <div className="mui-table-wrapper" style={styles.tableWrapper}>
         {headerTable}
-        <div className="mui-body-table" style={mergedTableBodyStyle}>
+        <div className="mui-body-table" style={mergedBodyTableStyle}>
           <table className={classes} style={mergedTableStyle}>
             {inlineHeader}
             {inlineFooter}
