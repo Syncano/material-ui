@@ -29,6 +29,12 @@ let TimePickerPage = React.createClass({
             type: 'boolean',
             header: 'default: false',
             desc: 'It\'s technically more correct to refer to "12 noon" and "12 midnight" rather than "12 a.m." and "12 p.m." and it avoids real confusion between different locales. By default (for compatibility reasons) TimePicker uses (12 a.m./12 p.m.) To use (noon/midnight) set pedantic={true}.'
+          },
+          {
+            name: 'emptyDefaultTime',
+            type: 'boolean',
+            header: 'default: false',
+            desc: 'Tells the component to clear initial TextField value. To avoid unexpected and unnecessary clearing, implement logic outside the component and pass \'true\' if condition is fulfilled.'
           }
         ]
       },
@@ -67,13 +73,26 @@ let TimePickerPage = React.createClass({
           hintText="24hr Format"
           onChange={this._changeTimePicker12}  />
 
+        <TimePicker
+          ref="picker12hrCleared"
+          format="ampm"
+          hintText="12hr Format"
+          onChange={this._changeTimePicker12Cleared}
+          emptyDefaultTime={true} />
+
       </ComponentDoc>
     );
   },
   _changeTimePicker24(err, t){
     this.refs.picker24hr.setTime(t);
+    this.refs.picker12hrCleared.setTime(t);
   },
   _changeTimePicker12(err, t){
+    this.refs.picker12hr.setTime(t);
+    this.refs.picker12hrCleared.setTime(t);
+  },
+  _changeTimePicker12Cleared(err, t){
+    this.refs.picker24hr.setTime(t);
     this.refs.picker12hr.setTime(t);
   }
 
