@@ -16,6 +16,7 @@ let LinkMenuItem = React.createClass({
     text: React.PropTypes.string.isRequired,
     target: React.PropTypes.string,
     active: React.PropTypes.bool,
+    selected: React.PropTypes.bool,
     disabled: React.PropTypes.bool,
     className: React.PropTypes.string,
   },
@@ -74,10 +75,9 @@ let LinkMenuItem = React.createClass({
     let linkStyles =
       this.mergeAndPrefix(
         styles.root,
-        this.props.selected && styles.rootWhenSelected,
+        this.props.style,
         this.props.selected && styles.rootWhenSelected,
         (this.props.active && !this.props.disabled) && styles.rootWhenHovered,
-        this.props.style,
         this.props.disabled && styles.rootWhenDisabled);
 
     return (
@@ -100,12 +100,12 @@ let LinkMenuItem = React.createClass({
 
   _handleMouseEnter(e) {
     this.setState({hovered: true});
-    if (!this.props.disabled && this.props.onMouseEnter) this.props.onMouseEnter(e);
+    if (!this.props.disabled && this.props.onMouseEnter) this.props.onMouseEnter(e, this.props.index);
   },
 
   _handleMouseLeave(e) {
     this.setState({hovered: false});
-    if (!this.props.disabled && this.props.onMouseLeave) this.props.onMouseLeave(e);
+    if (!this.props.disabled && this.props.onMouseLeave) this.props.onMouseLeave(e, this.props.index);
   },
 });
 
