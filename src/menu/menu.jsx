@@ -342,12 +342,15 @@ let Menu = React.createClass({
             <LinkMenuItem
               key={i}
               index={i}
+              selected={this.state.selectedIndex === i}
               active={this.state.activeIndex === i}
               text={menuItem.text}
               disabled={isDisabled}
               className={this.props.menuItemClassNameLink}
               style={this.props.menuItemStyleLink}
               payload={menuItem.payload}
+              onMouseEnter={this._onItemActivated}
+              onMouseLeave={this._onItemDeactivated}
               target={menuItem.target}/>
           );
           break;
