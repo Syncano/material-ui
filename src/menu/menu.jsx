@@ -342,7 +342,7 @@ let Menu = React.createClass({
             <LinkMenuItem
               key={i}
               index={i}
-              selected={this.state.selectedIndex === i}
+              selected={this.props.selectedIndex === i}
               active={this.state.activeIndex === i}
               text={menuItem.text}
               disabled={isDisabled}
