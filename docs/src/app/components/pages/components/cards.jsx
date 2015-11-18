@@ -1,8 +1,9 @@
-let React = require('react');
-let mui = require('material-ui');
-let ComponentDoc = require('../../component-doc');
+const React = require('react');
+const mui = require('material-ui');
+const ComponentDoc = require('../../component-doc');
+const CodeExample = require('../../code-example/code-example');
 
-let {
+const {
   Avatar,
   Card,
   CardActions,
@@ -11,11 +12,13 @@ let {
   CardMedia,
   CardText,
   CardTitle,
-  FlatButton
+  FlatButton,
+  Paper,
 } = mui;
-let Code = require('cards-code');
+const Code = require('cards-code');
+const CodeBlock = require('../../code-example/code-block');
 
-class CardPage extends React.Component {
+export default class CardPage extends React.Component {
 
   constructor(props) {
     super(props);
@@ -53,12 +56,25 @@ class CardPage extends React.Component {
             desc: 'Whether this card component is expandable. Can be set on any child of the Card component.',
           },
           {
+            name: 'actAsExpander',
+            type: 'bool',
+            header: 'optional',
+            desc: 'Whether a click on this card component expands the card. ' +
+                   'Can be set on any child of the Card component.',
+          },
+          {
             name: 'showExpandableButton',
             type: 'bool',
             header: 'optional',
             desc: 'Whether this card component include a button to expand the card. CardTitle, CardHeader ' +
                   'and CardActions implement showExpandableButton. Any child component of Card can implements ' +
                   'showExpandableButton or forwards the property to a child component supporting it.',
+          },
+          {
+            name: 'style',
+            type: 'object',
+            header: 'optional',
+            desc: 'Override the inline-styles of the card\'s root element.',
           },
         ],
       },
@@ -69,7 +85,7 @@ class CardPage extends React.Component {
             name: 'onExpandChange',
             type: 'function(isExpanded)',
             header: 'optional',
-            desc: 'Fired when the expandable state changes.'
+            desc: 'Fired when the expandable state changes.',
           },
         ],
       },
@@ -80,9 +96,25 @@ class CardPage extends React.Component {
     return (
       <ComponentDoc
         name="Card"
-        code={Code}
         desc={this.desc}
         componentInfo={this.componentInfo}>
+
+        <Paper style = {{marginBottom: '22px'}}>
+          <CodeBlock>
+          {
+            '//Import statements:\nconst Card = require(\'material-ui/lib/card/card\');\n' +
+            'const CardActions = require(\'material-ui/lib/card/card-actions\');\n' +
+            'const CardExpandable = require(\'material-ui/lib/card/card-expandable\');\n' +
+            'const CardHeader = require(\'material-ui/lib/card/card-header\');\n' +
+            'const CardMedia = require(\'material-ui/lib/card/card-media\');\n' +
+            'const CardText = require(\'material-ui/lib/card/card-text\');\n' +
+            'const CardTitle = require(\'material-ui/lib/card/card-title\');\n\n' +
+            '//See material-ui/lib/index.js for more\n'
+          }
+          </CodeBlock>
+        </Paper>
+
+        <CodeExample code={Code}>
           <Card>
             <CardHeader
               title="Title"
@@ -113,6 +145,7 @@ class CardPage extends React.Component {
               title="Title"
               subtitle="Subtitle"
               avatar={<Avatar style={{color:'red'}}>A</Avatar>}
+              actAsExpander={true}
               showExpandableButton={true}>
             </CardHeader>
             <CardText expandable={true}>
@@ -132,10 +165,9 @@ class CardPage extends React.Component {
               Aliquam dui mauris, mattis quis lacus id, pellentesque lobortis odio.
             </CardText>
           </Card>
+        </CodeExample>
       </ComponentDoc>
     );
   }
 
 }
-
-module.exports = CardPage;

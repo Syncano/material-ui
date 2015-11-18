@@ -1,11 +1,12 @@
-let React = require('react');
-let StylePropable = require('../mixins/style-propable');
-let Transition = require('../styles/transitions');
-let DateTime = require('../utils/date-time');
-let EnhancedButton = require('../enhanced-button');
+const React = require('react');
+const StylePropable = require('../mixins/style-propable');
+const Transition = require('../styles/transitions');
+const DateTime = require('../utils/date-time');
+const EnhancedButton = require('../enhanced-button');
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
-
-let DayButton = React.createClass({
+const DayButton = React.createClass({
 
   mixins: [StylePropable],
 
@@ -20,6 +21,17 @@ let DayButton = React.createClass({
     disabled: React.PropTypes.bool,
   },
 
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
   getDefaultProps() {
     return {
       selected: false,
@@ -30,11 +42,19 @@ let DayButton = React.createClass({
   getInitialState() {
     return {
       hover: false,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
   },
 
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
+  },
+
   getTheme() {
-    return this.context.muiTheme.component.datePicker;
+    return this.state.muiTheme.datePicker;
   },
 
   render() {
@@ -51,19 +71,20 @@ let DayButton = React.createClass({
         WebkitTapHighlightColor: 'rgba(0,0,0,0)',
         position: 'relative',
         float: 'left',
-        width: 36,
+        width: 41,
         padding: '4px 2px',
       },
 
       label: {
         position: 'relative',
-        color: this.context.muiTheme.palette.textColor,
+        color: this.state.muiTheme.rawTheme.palette.textColor,
       },
 
       buttonState: {
         position: 'absolute',
-        height: 32,
-        width: 32,
+        height: 36,
+        width: 36,
+        top: 2,
         opacity: 0,
         borderRadius: '50%',
         transform: 'scale(0)',
@@ -102,11 +123,11 @@ let DayButton = React.createClass({
         onMouseLeave={this._handleMouseLeave}
         onTouchTap={this._handleTouchTap}
         onKeyboardFocus={this._handleKeyboardFocus}>
-        <div style={styles.buttonState} />
-        <span style={styles.label}>{this.props.date.getDate()}</span>
+        <div style={this.prepareStyles(styles.buttonState)} />
+        <span style={this.prepareStyles(styles.label)}>{this.props.date.getDate()}</span>
       </EnhancedButton>
     ) : (
-      <span style={styles.root} />
+      <span style={this.prepareStyles(styles.root)} />
     );
   },
 

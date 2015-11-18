@@ -1,11 +1,13 @@
-let React = require('react');
-let { ClearFix, Mixins, Paper } = require('material-ui');
-let ComponentDoc = require('../../component-doc');
+const React = require('react');
+const { ClearFix, Mixins, Paper } = require('material-ui');
+const ComponentDoc = require('../../component-doc');
 
-let { StyleResizable } = Mixins;
-let Code = require('paper-code');
+const { StyleResizable } = Mixins;
+const Code = require('paper-code');
+const CodeExample = require('../../code-example/code-example');
+const CodeBlock = require('../../code-example/code-block');
 
-let PaperPage = React.createClass ({
+const PaperPage = React.createClass ({
 
   mixins: [StyleResizable],
 
@@ -16,16 +18,16 @@ let PaperPage = React.createClass ({
         width: '100px',
         margin: '0 auto',
         marginBottom: '64px',
-        textAlign: 'center'
+        textAlign: 'center',
       },
       group: {
         float: 'left',
-        width: '100%'
+        width: '100%',
       },
       p: {
         lineHeight: '80px',
-        height: '100%'
-      }
+        height: '100%',
+      },
     };
 
     if (this.isDeviceSize(StyleResizable.statics.Sizes.MEDIUM)) {
@@ -45,35 +47,35 @@ let PaperPage = React.createClass ({
             name: 'circle',
             type: 'bool',
             header: 'default: false',
-            desc: 'Set to true to generate a circlular paper container.'
+            desc: 'Set to true to generate a circlular paper container.',
           },
           {
             name: 'rounded',
             type: 'bool',
             header: 'default: true',
             desc: 'By default, the paper container will have a border radius. ' +
-              'Set this to false to generate a container with sharp corners.'
+              'Set this to false to generate a container with sharp corners.',
           },
           {
             name: 'style',
             type: 'object',
             header: 'optional',
-            desc: 'Override the inline-styles of Paper\'s root element.'
+            desc: 'Override the inline-styles of Paper\'s root element.',
           },
           {
             name: 'zDepth',
-            type: 'number (0-5)',
+            type: 'oneOf [0,1,2,3,4,5]',
             header: 'default: 1',
-            desc: 'This number represents the zDepth of the paper shadow.'
+            desc: 'This number represents the zDepth of the paper shadow.',
           },
           {
             name: 'transitionEnabled',
             type: 'bool',
             header: 'default: true',
-            desc: 'Set to false to disable CSS transitions for the paper element.'
-          }
-        ]
-      }
+            desc: 'Set to false to disable CSS transitions for the paper element.',
+          },
+        ],
+      },
     ];
 
     let groupStyle = this.getStyles().group;
@@ -81,21 +83,30 @@ let PaperPage = React.createClass ({
     return (
       <ComponentDoc
         name="Paper"
-        code={Code}
         componentInfo={componentInfo}>
 
-        <div>
-          <ClearFix style={groupStyle}>
-            {this._getGroupDefault()}
-          </ClearFix>
-          <ClearFix style={groupStyle}>
-            {this._getGroupRounded()}
-          </ClearFix>
-          <ClearFix style={groupStyle}>
-            {this._getGroupCircle()}
-          </ClearFix>
-        </div>
+        <Paper style = {{marginBottom: '22px'}}>
+          <CodeBlock>
+          {
+            '//Import statement:\nconst Paper = require(\'material-ui/lib/paper\');\n\n' +
+            '//See material-ui/lib/index.js for more\n'
+          }
+          </CodeBlock>
+        </Paper>
 
+        <CodeExample code={Code}>
+          <div>
+            <ClearFix style={groupStyle}>
+              {this._getGroupDefault()}
+            </ClearFix>
+            <ClearFix style={groupStyle}>
+              {this._getGroupRounded()}
+            </ClearFix>
+            <ClearFix style={groupStyle}>
+              {this._getGroupCircle()}
+            </ClearFix>
+          </div>
+        </CodeExample>
       </ComponentDoc>
     );
   },
@@ -137,7 +148,7 @@ let PaperPage = React.createClass ({
       elements.push(React.cloneElement(this._createPaperElement(i, "circle=true"), {circle: true}));
     }
     return elements;
-  }
+  },
 
 });
 

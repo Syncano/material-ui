@@ -1,3 +1,215 @@
+## 0.13.3
+###### _Nov 17, 2015_
+
+##### General
+- [Snackbar] add bodyStyle prop to style child div (#2104)
+- [DatePicker] add container prop to display DatePicker in-line or inside Dialog (#2120 and #2153)
+- [AppBar] add relative positioning for z-index to take effect (#1478)
+- [AppBar] add onTitleTouchTap prop to AppBar (#2125)
+- [Popover] new component! (#2043) (thanks @chrismcv)
+- Split [SelectField] and [TextField] doc pages (#2161)
+
+##### Component Fixes / Enhancements
+- [SelectField] onChange triggered consistently when using value prop (#1610)
+- [Dialog] fix page scrolling behind dialog after resizing (#1946)
+- [DatePicker] fix calendar height (#2141)
+- [TimePicker] allow to set time to null (#2108)
+
+## 0.13.2
+###### _Nov 9, 2015_
+
+##### General
+- Add tabs with slide effect (#1907)
+- Universal rendering support (#2007) (thanks @Cavitt)
+- Add labelPosition prop to buttons (#2014)
+- Add RenderToLayer component (#2042) (thanks @chrismcv)
+- Open state of of dialog now controlled through props (#1996)
+  - openImmediately, show(), dismiss() deprecated
+- Update TextField docs (#2070)
+- New Badge component (#2045) (thanks @rhythnic)
+- Add import statements to components' docs pages (#2113)
+
+##### Component Fixes / Enhancements
+- Fix server side rendering (#2021)
+- Add key to TableHeaderColumn for selectAll (#2030)
+- Fix Circular Progress transition (#2047)
+- Fix Snackbar getting stuck when receiving new props (#2024)
+- iPad enhanced textarea fix (#1720)
+- Table clickAway triggers onRowSelection (#2054)
+- Theme color fixes for Slider and Toggle (#2016)
+
+## 0.13.1
+###### _Oct 29, 2015_
+
+##### General
+- [SVGIcons] added index.js and index-generator script (#1959)
+- [TimePicker] openDialog() function (#1939) and autoOk prop (#1940) added
+- [DatePicker] i18n support added (#1658)
+- [LeftNav] supports nested children (w/o menuItems) (#1982)
+- [Snackbar] updated for new specification (#1668)
+- [Tabs] added tabTemplate prop (#1691)
+
+##### Component Fixes / Enhancements
+- [TextArea] height issue fixed (#1875)
+- [GridList] doc added (#1948) with code examples (#1988)
+- [TextField] fixed custom theme color hiding backgroundColor (#1989)
+- [TimePicker] added style and textFieldStyle props (#1949)
+- [Card] text color is now pulled from theme (#1995)
+
+## 0.13.0
+###### _Oct 21, 2015_
+
+##### Breaking Changes
+- Material-UI for React 0.14.x
+
+##### Component Fixes / Enhancements
+- FloatingActionButton now has iconStyle prop (#1575)
+- Card title and subtitle props can be any node (#1950)
+
+## 0.12.5
+###### _Oct 21, 2015_
+
+v0.12.4 should have really been v0.13.0 as it breaks compatibility with React 0.13.3. This version fixes that. We reverted some commits (related to React 0.14.0 support) from v0.12.4 to bring to you v0.12.5 that works as expected.
+
+##### Component Fixes / Enhancements
+- DatePicker performance has been improved (#1905)
+- Docs code now follows ESLint rules more strictly (#1778)
+- Removed duplicate keys in component definitions (#1933)
+
+## 0.12.4
+###### _Oct 19, 2015_
+
+**This version is not compatible with React 0.13.x.** If you're on React 0.13.x, use Material-UI v0.12.5 instead.
+
+##### General
+- React 0.14 compatible
+
+##### Component Fixes / Enhancements
+- ThemeDecorator supports props (#1841)
+- Full RTL support included (#1674)
+- react-draggable dependency removed for Slider (#1825)
+
+## 0.12.3
+###### _Oct 7, 2015_
+
+##### Component Fixes / Enhancements
+- Quick-fix version until react 0.14 support is somewhat stable
+  - Changed react dependency to ~0.13 in package.json (#1836)
+
+## 0.12.2
+###### _Oct 6, 2015_
+
+##### General
+- NEW GridList component and documentation! Thanks to @igorbt (#1320)
+
+##### Component Fixes / Enhancements
+- Added back canvasColor to theme palette (#1762)
+- Added hintStyle prop to TextField (#1510)
+- Add isScrollbarVisible function to table (#1539)
+- Add rowsMax prop to EnhancedTextarea (#1562)
+- Tab "item three" renamed on docs site (#1775)
+- Fixed docs server to run on Windows (#1774)
+- FlatButton now has a backgroundColor prop (#1561)
+- Fixed DropdownMenu buggy value prop check (#1768)
+
+## 0.12.1
+###### _Sep 28, 2015_
+
+##### Component Fixes / Enhancements
+- Fix broken documentation site
+  - Fix theme display switch problem in doc (#1696)
+  - Fix typo in src/card-expandable.jsx (#1724)
+  - Fix broken link to v0.12.0 release tag
+- Use correct require calls 
+  - for react addons (#1729)
+  - for raw themes (#1742)
+- Remove hard-coded color values from theme-manager
+  - Use consistent values from raw theme (#1746)
+
+## 0.12.0
+###### _Sep 25, 2015_
+
+##### Breaking Changes
+- Theming has been re-done so that material-ui components can be used without having to worry about passing a theme (all components implement a default theme) (#1662)
+  - There's now a concept of `mui theme` and `raw theme`, `mui theme` is produced from `raw theme`
+  - `ThemeManager` has been changed, no longer needs `new` in call
+  - `ThemeManager` produces `mui theme` from `raw theme`. Raw themes may be user-defined.
+  - Functions in `ThemeManager` allow to modify theme variables. Component-level styles may be overriden in the `mui theme`.
+  - See new documentation [here](http://material-ui.com/#/customization/themes)
+- Function names in the context-pure mixin have been changed (#1711)
+  - `getContextProps()` has been changed to `getRelevantContextKeys()`
+
+##### General
+- Updated dependency of `react-tap-event-plugin` (#1714)
+
+##### Component Fixes / Enhancements
+- Dialog component (#1717)
+  - `actions` now has `id` property
+  - Fixed a bug in dialog where a faulty check caused an error in console
+  - Text field ipad scrolling in dialog
+
+## 0.11.1
+###### _Sep 15, 2015_
+
+##### Component Fixes / Enhancements
+- DatePicker - Updated to new design specs (#1266)
+- LeftNav - Fix sidebar position for browsers that don't support transform3d (#1269)
+- TextField - Added props to override underlineStyle when disabled (#1493)
+
+## 0.11.0
+###### _Aug 24, 2015_
+
+##### Breaking Changes
+- The Table component is now composable. (#1199)
+  - JSON objects to create the table and the table component will no longer generate the table for you.
+    The docs site provides a complete example of how a table might look: http://material-ui.com/#/components/table.
+    The example also includes a 'super header' and 'super footer' row.
+  - **Upgrade Path:** Instead of passing in the raw JSON data, you'll need to generate the appropriate
+    TableHeader/TableRow/TableHeaderColumn components and pass them in as children. The same should be applied
+    to the rowData and the footer.
+- Tabs can now be controlled. In order to make this work we had to change the parameters being passed back to
+  the `onChange` event to: `onChange(value, e, tab)`. Where value is the value of the tab that it was changed
+  to, e is the event, and tab is the actual tab component. (#1232, #1235)
+- Added a new `static` flag to the ThemeManager that defaults to `true`. If you're mutating your theme variables
+  after the app initializes, set this flag to `false`. This will allow us to perform some optimizations to
+  components that require theme variables. (#1397)
+- ListItem (#1438, #1105)
+  - Nested list items should no longer be passed in as children. Use the `nestedItems` prop instead.
+  - The `open` prop has been renamed to `initiallyOpen`.
+- Removed classable mixin
+  - This mixin was no longer used in the library. Removing it allowed us to get rid of the `classnames`
+    dependency. If you were using this mixin in your own projects, you'll need to pull the source and manually
+    include it.
+
+##### Component Fixes / Enhancements
+- Buttons - Fixed a bug that caused buttons to not gain keyboard focus in some cases (#1485, #1453, #1458)
+- Card
+  - Properly merge `CardAction` and `CardExpandable` styles. (#1376)
+  - Added Right-To-Left support to `CardExpandable`. To use this, set `isRtl` to `true` in the theme. (#1408)
+- DatePicker - Fixed an error that occurred when using valueLink (#1400)
+- DropDownMenu - Added `disabled` prop (#1406)
+- FlatButton - Added `labelPosition` prop. (#1286)
+- InkBar - Added color prop and inkBar.backgroundColor to theme variables. (#1244)
+- Ripple
+  - Fixed display glitch on Safari (#1420)
+  - Fixed an error when ripples were unMounted (#1416)
+- SelectField
+  - Added `floatingLabelStyle` prop (#1463 #1450)
+- Slider
+  - Fixed a bug when setting the width attr (#1368)
+  - Fixed a bug with disabled sliders (#1417)
+  - Fixed a focus style glitch and other style problems (#1448, #1451, #1468)
+- Snackbar - Added onShow and onDismiss (#1390)
+- Table - Ensure that the table component properly keeps track of selected rows (#1325)
+- TextField
+  - Added `underlineFocusStyle` prop (#1422, #1419)
+  - `hintText` can now be a `string` or `element` (#1424, #1202)
+- TimePicker
+  - Fixed a bug that caused the am/pm selector to switch (#1440)
+  - Fixed a bug that caused defaultTime to not be set (#1466)
+- Tooltip - Probably center tooltips when tooltip text changes (#1205)
+- Theme - Added `setContentFontFamily` (#1405)
+
 ## 0.10.4
 ###### _Aug 8, 2015_
 

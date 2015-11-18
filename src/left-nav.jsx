@@ -1,17 +1,24 @@
-let React = require('react');
-let KeyCode = require('./utils/key-code');
-let StylePropable = require('./mixins/style-propable');
-let AutoPrefix = require('./styles/auto-prefix');
-let Transitions = require('./styles/transitions');
-let WindowListenable = require('./mixins/window-listenable');
-let Overlay = require('./overlay');
-let Paper = require('./paper');
-let Menu = require('./menu/menu');
+const isBrowser = require('./utils/is-browser');
+
+let Modernizr = isBrowser ? require('./utils/modernizr.custom') : undefined;
+
+const React = require('react');
+const ReactDOM = require('react-dom');
+const KeyCode = require('./utils/key-code');
+const StylePropable = require('./mixins/style-propable');
+const AutoPrefix = require('./styles/auto-prefix');
+const Transitions = require('./styles/transitions');
+const WindowListenable = require('./mixins/window-listenable');
+const Overlay = require('./overlay');
+const Paper = require('./paper');
+const Menu = require('./menu/menu');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
 let openNavEventHandler = null;
 
 
-let LeftNav = React.createClass({
+const LeftNav = React.createClass({
 
   mixins: [StylePropable, WindowListenable],
 
@@ -19,12 +26,23 @@ let LeftNav = React.createClass({
     muiTheme: React.PropTypes.object,
   },
 
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
   propTypes: {
     className: React.PropTypes.string,
     disableSwipeToOpen: React.PropTypes.bool,
     docked: React.PropTypes.bool,
     header: React.PropTypes.element,
-    menuItems: React.PropTypes.array.isRequired,
+    menuItems: React.PropTypes.array,
     onChange: React.PropTypes.func,
     onNavOpen: React.PropTypes.func,
     onNavClose: React.PropTypes.func,
@@ -33,6 +51,7 @@ let LeftNav = React.createClass({
     menuItemClassName: React.PropTypes.string,
     menuItemClassNameSubheader: React.PropTypes.string,
     menuItemClassNameLink: React.PropTypes.string,
+    style: React.PropTypes.object,
   },
 
   windowListeners: {
@@ -56,7 +75,19 @@ let LeftNav = React.createClass({
     return {
       open: this.props.docked,
       swiping: null,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps(nextProps, nextContext) {
+    const newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    const newState = { muiTheme: newMuiTheme };
+
+    if (this.props.docked !== nextProps.docked) newState.open = nextProps.docked;
+
+    this.setState(newState);
   },
 
   componentDidMount() {
@@ -74,8 +105,7 @@ let LeftNav = React.createClass({
   },
 
   toggle() {
-    this.setState({ open: !this.state.open });
-    return this;
+    return (this.state.open) ? this.close() : this.open();
   },
 
   close() {
@@ -91,11 +121,11 @@ let LeftNav = React.createClass({
   },
 
   getThemePalette() {
-    return this.context.muiTheme.palette;
+    return this.state.muiTheme.rawTheme.palette;
   },
 
   getTheme() {
-    return this.context.muiTheme.component.leftNav;
+    return this.state.muiTheme.leftNav;
   },
 
   getStyles() {
@@ -106,7 +136,7 @@ let LeftNav = React.createClass({
         width: this.getTheme().width,
         position: 'fixed',
         zIndex: 10,
-        left: 0,
+        left: isBrowser && Modernizr.csstransforms3d ? 0 : x,
         top: 0,
         transform: 'translate3d(' + x + 'px, 0, 0)',
         transition: !this.state.swiping && Transitions.easeOut(),
@@ -120,20 +150,21 @@ let LeftNav = React.createClass({
         borderRadius: '0',
       },
       menuItem: {
-        height: this.context.muiTheme.spacing.desktopLeftNavMenuItemHeight,
-        lineHeight: this.context.muiTheme.spacing.desktopLeftNavMenuItemHeight + 'px',
+        height: this.state.muiTheme.rawTheme.spacing.desktopLeftNavMenuItemHeight,
+        lineHeight: this.state.muiTheme.rawTheme.spacing.desktopLeftNavMenuItemHeight + 'px',
       },
       rootWhenOpenRight: {
         left: 'auto',
         right: 0,
       },
     };
-    styles.menuItemLink = this.mergeAndPrefix(styles.menuItem, {
+
+    styles.menuItemLink = this.mergeStyles(styles.menuItem, {
       display: 'block',
       textDecoration: 'none',
       color: this.getThemePalette().textColor,
     });
-    styles.menuItemSubheader = this.mergeAndPrefix(styles.menuItem, {
+    styles.menuItemSubheader = this.mergeStyles(styles.menuItem, {
       overflow: 'hidden',
     });
 
@@ -151,11 +182,30 @@ let LeftNav = React.createClass({
           ref="overlay"
           show={this.state.open || !!this.state.swiping}
           transitionEnabled={!this.state.swiping}
-          onTouchTap={this._onOverlayTouchTap}
-        />
+          onTouchTap={this._onOverlayTouchTap} />
       );
     }
-
+    let children;
+    if (this.props.menuItems === undefined) {
+      children = this.props.children;
+    }
+    else {
+       children = (
+        <Menu
+          ref="menuItems"
+          style={this.mergeStyles(styles.menu)}
+          zDepth={0}
+          menuItems={this.props.menuItems}
+          menuItemStyle={this.mergeStyles(styles.menuItem)}
+          menuItemStyleLink={this.mergeStyles(styles.menuItemLink)}
+          menuItemStyleSubheader={this.mergeStyles(styles.menuItemSubheader, this.props.menuItemStyleSubheader)}
+          menuItemClassName={this.props.menuItemClassName}
+          menuItemClassNameSubheader={this.props.menuItemClassNameSubheader}
+          menuItemClassNameLink={this.props.menuItemClassNameLink}
+          selectedIndex={selectedIndex}
+          onItemTap={this._onMenuItemClick} />
+        );
+    }
     return (
       <div className={this.props.className}>
         {overlay}
@@ -164,24 +214,12 @@ let LeftNav = React.createClass({
           zDepth={2}
           rounded={false}
           transitionEnabled={!this.state.swiping}
-          style={this.mergeAndPrefix(
+          style={this.mergeStyles(
             styles.root,
             this.props.openRight && styles.rootWhenOpenRight,
             this.props.style)}>
             {this.props.header}
-            <Menu
-              ref="menuItems"
-              style={this.mergeAndPrefix(styles.menu)}
-              zDepth={0}
-              menuItems={this.props.menuItems}
-              menuItemStyle={this.mergeAndPrefix(styles.menuItem)}
-              menuItemStyleLink={this.mergeAndPrefix(styles.menuItemLink)}
-              menuItemStyleSubheader={this.mergeAndPrefix(styles.menuItemSubheader, this.props.menuItemStyleSubheader)}
-              menuItemClassName={this.props.menuItemClassName}
-              menuItemClassNameSubheader={this.props.menuItemClassNameSubheader}
-              menuItemClassNameLink={this.props.menuItemClassNameLink}
-              selectedIndex={selectedIndex}
-              onItemTap={this._onMenuItemClick} />
+            {children}
         </Paper>
       </div>
     );
@@ -189,10 +227,12 @@ let LeftNav = React.createClass({
 
   _updateMenuHeight() {
     if (this.props.header) {
-      let container = React.findDOMNode(this.refs.clickAwayableElement);
-      let menu = React.findDOMNode(this.refs.menuItems);
-      let menuHeight = container.clientHeight - menu.offsetTop;
-      menu.style.height = menuHeight + 'px';
+      const menu = ReactDOM.findDOMNode(this.refs.menuItems);
+      if (menu){
+        const container = ReactDOM.findDOMNode(this.refs.clickAwayableElement);
+        const menuHeight = container.clientHeight - menu.offsetTop;
+        menu.style.height = menuHeight + 'px';
+      }
     }
   },
 
@@ -266,10 +306,10 @@ let LeftNav = React.createClass({
   },
 
   _setPosition(translateX) {
-    let leftNav = React.findDOMNode(this.refs.clickAwayableElement);
-    leftNav.style[AutoPrefix.single('transform')] =
-      'translate3d(' + (this._getTranslateMultiplier() * translateX) + 'px, 0, 0)';
+    let leftNav = ReactDOM.findDOMNode(this.refs.clickAwayableElement);
+    let transformCSS = 'translate3d(' + (this._getTranslateMultiplier() * translateX) + 'px, 0, 0)';
     this.refs.overlay.setOpacity(1 - translateX / this._getMaxTranslateX());
+    AutoPrefix.set(leftNav.style, 'transform', transformCSS);
   },
 
   _getTranslateX(currentX) {

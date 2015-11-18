@@ -1,17 +1,21 @@
-let React = require('react');
-let CodeExample = require('../../code-example/code-example');
-let {IconButton, Slider, Styles, Tab, Tabs } = require('material-ui');
-let ComponentDoc = require('../../component-doc');
-let { Colors, Typography } = Styles;
-let Code = require('tabs-code');
+const React = require('react');
+const CodeExample = require('../../code-example/code-example');
+const {IconButton, Slider, Styles, Tab, Tabs, Paper } = require('material-ui');
+const ComponentDoc = require('../../component-doc');
+const { Colors, Typography } = Styles;
+const Code = require('tabs-code');
+const SwipeableViews = require('react-swipeable-views');
+const CodeBlock = require('../../code-example/code-block');
 
+export default class TabsPage extends React.Component {
 
-class TabsPage extends React.Component {
-
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this._handleTabActive = this._handleTabActive.bind(this);
-    this.state = {tabsValue: 'a'};
+    this.state = {
+      tabsValue: 'a',
+      slideIndex: 0,
+    };
   }
 
   render(){
@@ -29,37 +33,43 @@ class TabsPage extends React.Component {
             name: 'contentContainerStyle',
             type: 'object',
             header: 'optional',
-            desc: 'Override the inline-styles of the content\'s container.'
+            desc: 'Override the inline-styles of the content\'s container.',
           },
           {
             name: 'initialSelectedIndex',
             type: 'number',
             header: 'optional',
-            desc: 'Specify initial visible tab index. Initial selected index is set by default to 0. If initialSelectedIndex is set but larger than the total amount of specified tabs, initialSelectedIndex will revert back to default'
+            desc: 'Specify initial visible tab index. Initial selected index is set by default to 0. If initialSelectedIndex is set but larger than the total amount of specified tabs, initialSelectedIndex will revert back to default',
           },
           {
             name: 'inkBarStyle',
             type: 'object',
             header: 'optional',
-            desc: 'Override the inline-styles of the InkBar.'
+            desc: 'Override the inline-styles of the InkBar.',
           },
           {
             name: 'style',
             type: 'object',
             header: 'optional',
-            desc: 'Override the inline-styles of the Tabs\' root element.'
+            desc: 'Override the inline-styles of the Tabs\' root element.',
           },
           {
             name: 'tabItemContainerStyle',
             type: 'object',
             header: 'optional',
-            desc: 'Override the inline-styles of the tab-labels container.'
+            desc: 'Override the inline-styles of the tab-labels container.',
+          },
+          {
+            name: 'tabTemplate',
+            type: 'ReactClass',
+            header: 'optional',
+            desc: 'Override the default tab template used to wrap the content of each tab element.',
           },
           {
             name: 'value',
-            type: 'string or number',
+            type: 'oneOfType [string, number]',
             header: 'optional',
-            desc: 'Makes Tabs controllable and selects the tab whose value prop matches this prop.'
+            desc: 'Makes Tabs controllable and selects the tab whose value prop matches this prop.',
           },
           {
             name: 'contentContainerClassName',
@@ -82,9 +92,9 @@ class TabsPage extends React.Component {
             name: 'onChange',
             type: 'function(value, e, tab)',
             header: 'optional',
-            desc: 'Fired on touch or tap of a tab. Passes the value of the tab, the touchTap event and the tab element.'
-          }
-        ]
+            desc: 'Fired on touch or tap of a tab. Passes the value of the tab, the touchTap event and the tab element.',
+          },
+        ],
       },
       {
         name: 'Tab Props',
@@ -93,16 +103,16 @@ class TabsPage extends React.Component {
             name: 'label',
             type: 'string',
             header: 'optional',
-            desc: 'Sets the text value of the tab item to the string specified.'
+            desc: 'Sets the text value of the tab item to the string specified.',
           },
           {
             name: 'value',
             type: 'string',
             header: 'optional',
             desc: 'If value prop passed to Tabs component, this value prop is also required. It assigns a value ' +
-              'to the tab so that it can be selected by the Tabs.'
-          }
-        ]
+              'to the tab so that it can be selected by the Tabs.',
+          },
+        ],
       },
       {
         name: 'Tab Events',
@@ -111,10 +121,10 @@ class TabsPage extends React.Component {
             name: 'onActive',
             type: 'function(tab)',
             header: 'optional',
-            desc: 'Fired when the active tab changes by touch or tap. Use this event to specify any functionality when an active tab changes. For example - we are using this to route to home when the third tab becomes active. This function will always recieve the active tab as it\'s first argument.'
-          }
-        ]
-      }
+            desc: 'Fired when the active tab changes by touch or tap. Use this event to specify any functionality when an active tab changes. For example - we are using this to route to home when the third tab becomes active. This function will always recieve the active tab as it\'s first argument.',
+          },
+        ],
+      },
     ];
 
     let padding = 400;
@@ -156,14 +166,28 @@ class TabsPage extends React.Component {
         position: 'relative',
         paddingLeft: padding,
       },
+      slide: {
+        padding: 10,
+      },
     };
 
     return (
       <ComponentDoc
         name="Tabs"
-        code={Code}
         desc={desc}
         componentInfo={componentInfo}>
+
+        <Paper style = {{marginBottom: '22px'}}>
+          <CodeBlock>
+          {
+            '//Import statement:\nconst Tabs = require(\'material-ui/lib/tabs/tabs\');\n' +
+            'const Tab = require(\'material-ui/lib/tabs/tab\');\n\n' +
+            '//See material-ui/lib/index.js for more\n'
+          }
+          </CodeBlock>
+        </Paper>
+
+        <CodeExample code={Code}>
           <Tabs>
             <Tab label="Item One" >
               <div>
@@ -189,8 +213,8 @@ class TabsPage extends React.Component {
               </div>
             </Tab>
             <Tab
-              label="Item Three"
-              route="home"
+              label="Home (non-content example)"
+              route="/home"
               onActive={this._handleTabActive} />
           </Tabs>
 
@@ -232,9 +256,40 @@ class TabsPage extends React.Component {
                   </div>
                 </Tab>
               </Tabs>
-        </div>
+          </div>
+          <br />
+          <Tabs onChange={this._handleChangeTabs.bind(this)} value={this.state.slideIndex + ''}>
+            <Tab label="Tab One" value="0" />
+            <Tab label="Tab Two" value="1" />
+            <Tab label="Tab Three" value="2" />
+          </Tabs>
+          <SwipeableViews index={this.state.slideIndex} onChangeIndex={this._handleChangeIndex.bind(this)}>
+            <div>
+              <h2 style={styles.headline}>Tabs with slide effect</h2>
+              Swipe to see the next slide.<br />
+            </div>
+            <div style={styles.slide}>
+              slide n°2
+            </div>
+            <div style={styles.slide}>
+              slide n°3
+            </div>
+          </SwipeableViews>
+        </CodeExample>
       </ComponentDoc>
     );
+  }
+
+  _handleChangeIndex(index) {
+    this.setState({
+      slideIndex: index,
+    });
+  }
+
+  _handleChangeTabs(value) {
+    this.setState({
+      slideIndex: parseInt(value, 10),
+    });
   }
 
   _handleButtonClick() {
@@ -242,16 +297,10 @@ class TabsPage extends React.Component {
   }
 
   _handleTabActive(tab){
-    this.context.router.transitionTo(tab.props.route);
+    this.props.history.pushState(null, tab.props.route);
   }
 
   _handleTabsChange(value, e, tab){
     this.setState({tabsValue: value});
   }
 }
-
-TabsPage.contextTypes = {
-  router: React.PropTypes.func
-};
-
-module.exports = TabsPage;

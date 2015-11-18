@@ -1,5 +1,6 @@
-const React = require('react/addons');
-const PureRenderMixin = React.addons.PureRenderMixin;
+const React = require('react');
+const ReactDOM = require('react-dom');
+const PureRenderMixin = require('react-addons-pure-render-mixin');
 const ColorManipulator = require('../utils/color-manipulator');
 const StylePropable = require('../mixins/style-propable');
 const Colors = require('../styles/colors');
@@ -9,8 +10,9 @@ const EnhancedButton = require('../enhanced-button');
 const IconButton = require('../icon-button');
 const OpenIcon = require('../svg-icons/navigation/arrow-drop-up');
 const CloseIcon = require('../svg-icons/navigation/arrow-drop-down');
-const ListNested = require('./list-nested');
-
+const NestedList = require('./nested-list');
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
 const ListItem = React.createClass({
 
@@ -24,6 +26,7 @@ const ListItem = React.createClass({
     autoGenerateNestedIndicator: React.PropTypes.bool,
     disabled: React.PropTypes.bool,
     disableKeyboardFocus: React.PropTypes.bool,
+    initiallyOpen: React.PropTypes.bool,
     innerDivStyle: React.PropTypes.object,
     insetChildren: React.PropTypes.bool,
     innerStyle: React.PropTypes.object,
@@ -31,31 +34,45 @@ const ListItem = React.createClass({
     leftCheckbox: React.PropTypes.element,
     leftIcon: React.PropTypes.element,
     nestedLevel: React.PropTypes.number,
+    nestedItems: React.PropTypes.arrayOf(React.PropTypes.element),
     onKeyboardFocus: React.PropTypes.func,
     onMouseEnter: React.PropTypes.func,
     onMouseLeave: React.PropTypes.func,
     onNestedListToggle: React.PropTypes.func,
     onTouchStart: React.PropTypes.func,
-    open: React.PropTypes.bool,
+    onTouchTap: React.PropTypes.func,
     rightAvatar: React.PropTypes.element,
     rightIcon: React.PropTypes.element,
     rightIconButton: React.PropTypes.element,
     rightToggle: React.PropTypes.element,
     primaryText: React.PropTypes.node,
+    style: React.PropTypes.object,
     secondaryText: React.PropTypes.node,
     secondaryTextLines: React.PropTypes.oneOf([1, 2]),
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   getDefaultProps() {
     return {
       autoGenerateNestedIndicator: true,
+      initiallyOpen: false,
+      nestedItems: [],
       nestedLevel: 0,
       onKeyboardFocus: () => {},
       onMouseEnter: () => {},
       onMouseLeave: () => {},
       onNestedListToggle: () => {},
       onTouchStart: () => {},
-      open: false,
       secondaryTextLines: 1,
     };
   },
@@ -64,11 +81,19 @@ const ListItem = React.createClass({
     return {
       hovered: false,
       isKeyboardFocused: false,
-      open: this.props.open,
+      open: this.props.initiallyOpen,
       rightIconButtonHovered: false,
       rightIconButtonKeyboardFocused: false,
       touch: false,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   render() {
@@ -82,11 +107,13 @@ const ListItem = React.createClass({
       leftAvatar,
       leftCheckbox,
       leftIcon,
+      nestedItems,
       nestedLevel,
       onKeyboardFocus,
       onMouseLeave,
       onMouseEnter,
       onTouchStart,
+      onTouchTap,
       rightAvatar,
       rightIcon,
       rightIconButton,
@@ -98,7 +125,7 @@ const ListItem = React.createClass({
       ...other,
     } = this.props;
 
-    const textColor = this.context.muiTheme.palette.textColor;
+    const textColor = this.state.muiTheme.rawTheme.palette.textColor;
     const hoverColor = ColorManipulator.fade(textColor, 0.1);
     const singleAvatar = !secondaryText && (leftAvatar || rightAvatar);
     const singleNoAvatar = !secondaryText && !(leftAvatar || rightAvatar);
@@ -121,7 +148,7 @@ const ListItem = React.createClass({
 
       //This inner div is needed so that ripples will span the entire container
       innerDiv: {
-        marginLeft: nestedLevel * this.context.muiTheme.component.listItem.nestedLevelDepth,
+        marginLeft: nestedLevel * this.state.muiTheme.listItem.nestedLevelDepth,
         paddingLeft: leftIcon || leftAvatar || leftCheckbox || insetChildren ? 72 : 16,
         paddingRight: rightIcon || rightAvatar || rightIconButton ? 56 : rightToggle ? 72 : 16,
         paddingBottom: singleAvatar ? 20 : 16,
@@ -176,7 +203,6 @@ const ListItem = React.createClass({
       },
 
       primaryText: {
-        margin: 0,
       },
 
       rightIconButton: {
@@ -212,26 +238,13 @@ const ListItem = React.createClass({
       },
     };
 
-    let contentChildren = [];
-    let nestedListItems = [];
-
-    React.Children.forEach(children, (child) => {
-
-      if (child === null) return;
-
-      if (React.isValidElement(child) && child.type.displayName === 'ListItem') {
-        nestedListItems.push(child);
-      }
-      else {
-        contentChildren.push(child);
-      }
-    });
+    let contentChildren = [children];
 
     if (leftIcon) {
       this._pushElement(
         contentChildren,
         leftIcon,
-        this.mergeStyles(styles.icons, styles.leftIcon),
+        this.mergeStyles(styles.icons, styles.leftIcon)
       );
     }
 
@@ -239,7 +252,7 @@ const ListItem = React.createClass({
       this._pushElement(
         contentChildren,
         rightIcon,
-        this.mergeStyles(styles.icons, styles.rightIcon),
+        this.mergeStyles(styles.icons, styles.rightIcon)
       );
     }
 
@@ -247,7 +260,7 @@ const ListItem = React.createClass({
       this._pushElement(
         contentChildren,
         leftAvatar,
-        this.mergeStyles(styles.avatars, styles.leftAvatar),
+        this.mergeStyles(styles.avatars, styles.leftAvatar)
       );
     }
 
@@ -255,7 +268,7 @@ const ListItem = React.createClass({
       this._pushElement(
         contentChildren,
         rightAvatar,
-        this.mergeStyles(styles.avatars, styles.rightAvatar),
+        this.mergeStyles(styles.avatars, styles.rightAvatar)
       );
     }
 
@@ -263,12 +276,12 @@ const ListItem = React.createClass({
       this._pushElement(
         contentChildren,
         leftCheckbox,
-        this.mergeStyles(styles.leftCheckbox),
+        this.mergeStyles(styles.leftCheckbox)
       );
     }
 
     //RightIconButtonElement
-    const hasNestListItems = nestedListItems.length;
+    const hasNestListItems = nestedItems.length;
     const hasRightElement = rightAvatar || rightIcon || rightIconButton || rightToggle;
     const needsNestedIndicator = hasNestListItems && autoGenerateNestedIndicator && !hasRightElement;
 
@@ -295,7 +308,7 @@ const ListItem = React.createClass({
         contentChildren,
         rightIconButtonElement,
         this.mergeStyles(styles.rightIconButton),
-        rightIconButtonHandlers,
+        rightIconButtonHandlers
       );
     }
 
@@ -303,15 +316,9 @@ const ListItem = React.createClass({
       this._pushElement(
         contentChildren,
         rightToggle,
-        this.mergeStyles(styles.rightToggle),
+        this.mergeStyles(styles.rightToggle)
       );
     }
-
-    const nestedList = hasNestListItems ? (
-      <ListNested nestedLevel={nestedLevel + 1} open={this.state.open}>
-        {nestedListItems}
-      </ListNested>
-    ) : null;
 
     if (primaryText) {
       const secondaryTextElement = this._createTextElement(
@@ -331,6 +338,12 @@ const ListItem = React.createClass({
       contentChildren.push(secondaryTextElement);
     }
 
+    const nestedList = nestedItems.length ? (
+      <NestedList nestedLevel={nestedLevel + 1} open={this.state.open}>
+        {nestedItems}
+      </NestedList>
+    ) : undefined;
+
     return hasCheckbox ? this._createLabelElement(styles, contentChildren) :
       disabled ? this._createDisabledElement(styles, contentChildren) : (
       <div>
@@ -343,9 +356,10 @@ const ListItem = React.createClass({
           onMouseLeave={this._handleMouseLeave}
           onMouseEnter={this._handleMouseEnter}
           onTouchStart={this._handleTouchStart}
+          onTouchTap={onTouchTap}
           ref="enhancedButton"
-          style={this.mergeAndPrefix(styles.root, style)}>
-          <div style={this.mergeAndPrefix(styles.innerDiv, innerDivStyle)}>
+          style={this.mergeStyles(styles.root, style)}>
+          <div style={this.prepareStyles(styles.innerDiv, innerDivStyle)}>
             {contentChildren}
           </div>
         </EnhancedButton>
@@ -357,7 +371,7 @@ const ListItem = React.createClass({
 
   applyFocusState(focusState) {
     const button = this.refs.enhancedButton;
-    const buttonEl = React.findDOMNode(button);
+    const buttonEl = ReactDOM.findDOMNode(button);
 
     if (button) {
       switch(focusState) {
@@ -381,11 +395,11 @@ const ListItem = React.createClass({
       style,
     } = this.props;
 
-    const mergedDivStyles = this.mergeAndPrefix(
+    const mergedDivStyles = this.prepareStyles(
       styles.root,
       styles.innerDiv,
       innerDivStyle,
-      style,
+      style
     );
 
     return React.createElement('div', { style: mergedDivStyles }, contentChildren);
@@ -397,12 +411,12 @@ const ListItem = React.createClass({
       style,
     } = this.props;
 
-    const mergedLabelStyles = this.mergeAndPrefix(
+    const mergedLabelStyles = this.prepareStyles(
       styles.root,
       styles.innerDiv,
       innerDivStyle,
       styles.label,
-      style,
+      style
     );
 
     return React.createElement('label', { style: mergedLabelStyles }, contentChildren);
@@ -411,7 +425,7 @@ const ListItem = React.createClass({
   _createTextElement(styles, data, key) {
     const isAnElement = React.isValidElement(data);
     const mergedStyles = isAnElement ?
-      this.mergeStyles(styles, data.props.style) : null;
+      this.prepareStyles(styles, data.props.style) : null;
 
     return isAnElement ? (
       React.cloneElement(data, {
@@ -419,7 +433,7 @@ const ListItem = React.createClass({
         style: mergedStyles,
       })
     ) : (
-      <div key={key} style={styles}>
+      <div key={key} style={this.prepareStyles(styles)}>
         {data}
       </div>
     );

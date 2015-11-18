@@ -1,16 +1,18 @@
-let React = require('react/addons');
-let update = React.addons.update;
-let Controllable = require('../mixins/controllable');
-let StylePropable = require('../mixins/style-propable');
-let AutoPrefix = require('../styles/auto-prefix');
-let Transitions = require('../styles/transitions');
-let KeyCode = require('../utils/key-code');
-let PropTypes = require('../utils/prop-types');
-let List = require('../lists/list');
-let Paper = require('../paper');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const update = require('react-addons-update');
+const Controllable = require('../mixins/controllable');
+const StylePropable = require('../mixins/style-propable');
+const AutoPrefix = require('../styles/auto-prefix');
+const Transitions = require('../styles/transitions');
+const KeyCode = require('../utils/key-code');
+const PropTypes = require('../utils/prop-types');
+const List = require('../lists/list');
+const Paper = require('../paper');
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
-
-let Menu = React.createClass({
+const Menu = React.createClass({
 
   mixins: [StylePropable, Controllable],
 
@@ -30,6 +32,7 @@ let Menu = React.createClass({
     onItemTouchTap: React.PropTypes.func,
     onKeyDown: React.PropTypes.func,
     openDirection: PropTypes.corners,
+    style: React.PropTypes.object,
     selectedMenuItemStyle: React.PropTypes.object,
     width: PropTypes.stringOrNumber,
     zDepth: PropTypes.zDepth,
@@ -48,6 +51,17 @@ let Menu = React.createClass({
     };
   },
 
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
   getInitialState() {
     let selectedIndex = this._getSelectedIndex(this.props);
 
@@ -55,6 +69,7 @@ let Menu = React.createClass({
       focusIndex: selectedIndex >= 0 ? selectedIndex : 0,
       isKeyboardFocused: this.props.initiallyKeyboardFocused,
       keyWidth: this.props.desktop ? 64 : 56,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
   },
 
@@ -73,23 +88,24 @@ let Menu = React.createClass({
   },
 
   componentWillLeave(callback) {
-    let rootStyle = React.findDOMNode(this).style;
-
-    AutoPrefix.set(rootStyle, 'transition', Transitions.easeOut('250ms', ['opacity', 'transform']));
-    AutoPrefix.set(rootStyle, 'transform', 'translate3d(0,-8px,0)');
+    let rootStyle = ReactDOM.findDOMNode(this).style;
+    rootStyle.transition = Transitions.easeOut('250ms', ['opacity', 'transform']);
+    rootStyle.transform = 'translate3d(0,-8px,0)';
     rootStyle.opacity = 0;
-
+    rootStyle = AutoPrefix.all(rootStyle);
     setTimeout(() => {
       if (this.isMounted()) callback();
-    }.bind(this), 250);
+    }, 250);
   },
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps, nextContext) {
     let selectedIndex = this._getSelectedIndex(nextProps);
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
 
     this.setState({
       focusIndex: selectedIndex >= 0 ? selectedIndex : 0,
       keyWidth: nextProps.desktop ? 64 : 56,
+      muiTheme: newMuiTheme,
     });
   },
 
@@ -154,11 +170,11 @@ let Menu = React.createClass({
       },
 
       selectedMenuItem: {
-        color: this.context.muiTheme.palette.accent1Color,
+        color: this.state.muiTheme.rawTheme.palette.accent1Color,
       },
     };
 
-    let mergedRootStyles = this.mergeAndPrefix(styles.root, style);
+    let mergedRootStyles = this.prepareStyles(styles.root, style);
     let mergedListStyles = this.mergeStyles(styles.list, listStyle);
 
     //Cascade children opacity
@@ -186,7 +202,7 @@ let Menu = React.createClass({
           transitionDelay = cumulativeDelay;
         }
 
-        childrenContainerStyles = this.mergeAndPrefix(styles.menuItemContainer, {
+        childrenContainerStyles = this.prepareStyles(styles.menuItemContainer, {
           transitionDelay: transitionDelay + 'ms',
         });
       }
@@ -201,7 +217,7 @@ let Menu = React.createClass({
         <div style={childrenContainerStyles}>{clonedChild}</div>
       ) : clonedChild;
 
-    }.bind(this));
+    });
 
     return (
       <div
@@ -229,9 +245,9 @@ let Menu = React.createClass({
   },
 
   _animateOpen() {
-    let rootStyle = React.findDOMNode(this).style;
-    let scrollContainerStyle = React.findDOMNode(this.refs.scrollContainer).style;
-    let menuContainers = React.findDOMNode(this.refs.list).childNodes;
+    let rootStyle = ReactDOM.findDOMNode(this).style;
+    let scrollContainerStyle = ReactDOM.findDOMNode(this.refs.scrollContainer).style;
+    let menuContainers = ReactDOM.findDOMNode(this.refs.list).childNodes;
 
     AutoPrefix.set(rootStyle, 'transform', 'scaleX(1)');
     AutoPrefix.set(scrollContainerStyle, 'transform', 'scaleY(1)');
@@ -258,7 +274,7 @@ let Menu = React.createClass({
 
     let mergedChildrenStyles = this.mergeStyles(
       child.props.style || {},
-      selectedChildrenStyles,
+      selectedChildrenStyles
     );
 
     let isFocused = childIndex === this.state.focusIndex;
@@ -339,7 +355,7 @@ let Menu = React.createClass({
 
       if (this._isChildSelected(child, props)) selectedIndex = menuItemIndex;
       if (!childIsADivider) menuItemIndex++;
-    }.bind(this));
+    });
 
     return selectedIndex;
   },
@@ -423,20 +439,20 @@ let Menu = React.createClass({
     let menuItemHeight = desktop ? 32 : 48;
 
     if (focusedMenuItem) {
-      let selectedOffSet = React.findDOMNode(focusedMenuItem).offsetTop;
+      let selectedOffSet = ReactDOM.findDOMNode(focusedMenuItem).offsetTop;
 
       //Make the focused item be the 2nd item in the list the
       //user sees
       let scrollTop = selectedOffSet - menuItemHeight;
       if (scrollTop < menuItemHeight) scrollTop = 0;
 
-      React.findDOMNode(this.refs.scrollContainer).scrollTop = scrollTop;
+      ReactDOM.findDOMNode(this.refs.scrollContainer).scrollTop = scrollTop;
     }
   },
 
   _setWidth() {
-    let el = React.findDOMNode(this);
-    let listEl = React.findDOMNode(this.refs.list);
+    let el = ReactDOM.findDOMNode(this);
+    let listEl = ReactDOM.findDOMNode(this.refs.list);
     let elWidth = el.offsetWidth;
     let keyWidth = this.state.keyWidth;
     let minWidth = keyWidth * 1.5;

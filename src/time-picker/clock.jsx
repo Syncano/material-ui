@@ -1,20 +1,26 @@
-let React = require('react');
-let StylePropable = require('../mixins/style-propable');
-let TimeDisplay = require("./time-display");
-let ClockButton = require("./clock-button");
-let ClockHours = require("./clock-hours");
-let ClockMinutes = require("./clock-minutes");
+const React = require('react');
+const StylePropable = require('../mixins/style-propable');
+const TimeDisplay = require("./time-display");
+const ClockButton = require("./clock-button");
+const ClockHours = require("./clock-hours");
+const ClockMinutes = require("./clock-minutes");
 
 
-let Clock = React.createClass({
+const Clock = React.createClass({
 
   mixins: [StylePropable],
 
   propTypes: {
+    onChangeMinutes: React.PropTypes.func,
+    onChangeHours: React.PropTypes.func,
     initialTime: React.PropTypes.object,
     mode: React.PropTypes.oneOf(['hour', 'minute']),
     format: React.PropTypes.oneOf(['ampm', '24hr']),
     isActive: React.PropTypes.bool,
+  },
+
+  contextTypes: {
+    muiTheme: React.PropTypes.object,
   },
 
   getDefaultProps() {
@@ -50,11 +56,11 @@ let Clock = React.createClass({
     let hours = this.state.selectedTime.getHours();
 
     if (affix === "am") {
-      this.handleChangeHours(hours - 12);
+      this.handleChangeHours(hours - 12, affix);
       return;
     }
 
-    this.handleChangeHours(hours + 12);
+    this.handleChangeHours(hours + 12, affix);
   },
 
   _getAffix() {
@@ -74,8 +80,8 @@ let Clock = React.createClass({
 
     if (this.props.format === 'ampm'){
       buttons = [
-        <ClockButton position="left" onTouchTap={this._setAffix.bind(this, "am")} selected={isAM} >{"AM"}</ClockButton>,
-        <ClockButton position="right" onTouchTap={this._setAffix.bind(this, "pm")} selected={!isAM} >{"PM"}</ClockButton>,
+        <ClockButton key="AM" position="left" onTouchTap={this._setAffix.bind(this, "am")} selected={isAM} >{"AM"}</ClockButton>,
+        <ClockButton key="PM" position="right" onTouchTap={this._setAffix.bind(this, "pm")} selected={!isAM} >{"PM"}</ClockButton>,
       ];
     }
     return buttons;
@@ -111,7 +117,7 @@ let Clock = React.createClass({
     }
 
     return (
-      <div style={styles.root}>
+      <div style={this.prepareStyles(styles.root)}>
         <TimeDisplay
           selectedTime={this.state.selectedTime}
           mode={this.state.mode}
@@ -120,7 +126,7 @@ let Clock = React.createClass({
           onSelectHour={this._setMode.bind(this, 'hour')}
           onSelectMin={this._setMode.bind(this, 'minute')} />
 
-        <div style={styles.container} >
+        <div style={this.prepareStyles(styles.container)} >
           {clock}
         </div>
 
@@ -131,16 +137,34 @@ let Clock = React.createClass({
 
   handleChangeHours(hours, finished) {
     let time = new Date(this.state.selectedTime);
+    let affix;
+
+    if ( typeof finished === 'string' ) {
+      affix = finished;
+      finished = undefined;
+    }
+    if (!affix) {
+      affix = this._getAffix();
+    }
+    if (affix === 'pm' && hours < 12) {
+      hours += 12;
+    }
+
     time.setHours(hours);
     this.setState({
       selectedTime: time,
     });
-
+    
+    const { onChangeHours } = this.props;
+    
     if (finished) {
       setTimeout(() => {
         this.setState({
           mode: 'minute',
         });
+        if (typeof(onChangeHours) === 'function') {
+          onChangeHours(time);
+        }
       }, 100);
     }
   },
@@ -151,6 +175,11 @@ let Clock = React.createClass({
     this.setState({
       selectedTime: time,
     });
+
+    const { onChangeMinutes } = this.props;
+    if (typeof(onChangeMinutes) === 'function') {
+        setTimeout(() => { onChangeMinutes(time); }, 0);
+      }
   },
 
   getSelectedTime() {

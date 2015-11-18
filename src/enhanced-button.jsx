@@ -1,15 +1,44 @@
-const React = require('react/addons');
-const PureRenderMixin = React.addons.PureRenderMixin;
+const React = require('react');
+const PureRenderMixin = require('react-addons-pure-render-mixin');
 const StylePropable = require('./mixins/style-propable');
 const Colors = require('./styles/colors');
 const Children = require('./utils/children');
+const Events = require('./utils/events');
 const KeyCode = require('./utils/key-code');
 const FocusRipple = require('./ripples/focus-ripple');
 const TouchRipple = require('./ripples/touch-ripple');
-
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
 let styleInjected = false;
+let listening = false;
 let tabPressed = false;
+
+function injectStyle() {
+  if (!styleInjected) {
+    // Remove inner padding and border in Firefox 4+.
+    let style = document.createElement("style");
+    style.innerHTML = `
+      button::-moz-focus-inner,
+      input::-moz-focus-inner {
+        border: 0;
+        padding: 0;
+      }
+    `;
+
+    document.body.appendChild(style);
+    styleInjected = true;
+  }
+}
+
+function listenForTabPresses() {
+  if (!listening) {
+    Events.on(window, 'keydown', (e) =>{
+      tabPressed = e.keyCode === KeyCode.TAB;
+    });
+    listening = true;
+  }
+}
 
 const EnhancedButton = React.createClass({
 
@@ -17,6 +46,17 @@ const EnhancedButton = React.createClass({
 
   contextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   propTypes: {
@@ -42,6 +82,7 @@ const EnhancedButton = React.createClass({
     onKeyUp: React.PropTypes.func,
     onTouchTap: React.PropTypes.func,
     tabIndex: React.PropTypes.number,
+    style: React.PropTypes.object,
   },
 
   getDefaultProps() {
@@ -63,10 +104,14 @@ const EnhancedButton = React.createClass({
       isKeyboardFocused: !this.props.disabled &&
         this.props.keyboardFocused &&
         !this.props.disableKeyboardFocus,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
   },
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
+
     if ((nextProps.disabled || nextProps.disableKeyboardFocus) &&
       this.state.isKeyboardFocused) {
       this.setState({isKeyboardFocused: false});
@@ -77,20 +122,8 @@ const EnhancedButton = React.createClass({
   },
 
   componentDidMount() {
-    if (!styleInjected) {
-      // Remove inner padding and border in Firefox 4+.
-      let style = document.createElement("style");
-      style.innerHTML = `
-        button::-moz-focus-inner,
-        input::-moz-focus-inner {
-          border: 0;
-          padding: 0;
-        }
-      `;
-
-      document.body.appendChild(style);
-      styleInjected = true;
-    }
+    injectStyle();
+    listenForTabPresses();
   },
 
   render() {
@@ -118,13 +151,13 @@ const EnhancedButton = React.createClass({
       ...other,
     } = this.props;
 
-    const mergedStyles = this.mergeAndPrefix({
+    const mergedStyles = this.prepareStyles({
       border: 10,
       background: 'none',
       boxSizing: 'border-box',
       display: 'inline-block',
       font: 'inherit',
-      fontFamily: this.context.muiTheme.contentFontFamily,
+      fontFamily: this.state.muiTheme.rawTheme.fontFamily,
       tapHighlightColor: Colors.transparent,
       appearance: linkButton ? null : 'button',
       cursor: disabled ? 'default' : 'pointer',
@@ -230,9 +263,6 @@ const EnhancedButton = React.createClass({
 
   _handleKeyDown(e) {
     if (!this.props.disabled && !this.props.disableKeyboardFocus) {
-      if (e.keyCode === KeyCode.TAB) {
-        tabPressed = true;
-      }
       if (e.keyCode === KeyCode.ENTER && this.state.isKeyboardFocused) {
         this._handleTouchTap(e);
       }

@@ -1,12 +1,14 @@
-let React = require('react');
-let StylePropable = require('./mixins/style-propable');
-let Transitions = require('./styles/transitions');
-let ColorManipulator = require('./utils/color-manipulator');
-let EnhancedButton = require('./enhanced-button');
-let FontIcon = require('./font-icon');
-let Paper = require('./paper');
-let Children = require('./utils/children');
-
+const React = require('react');
+const ReactDOM = require('react-dom');
+const StylePropable = require('./mixins/style-propable');
+const Transitions = require('./styles/transitions');
+const ColorManipulator = require('./utils/color-manipulator');
+const EnhancedButton = require('./enhanced-button');
+const FontIcon = require('./font-icon');
+const Paper = require('./paper');
+const Children = require('./utils/children');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
 let getZDepth = function(disabled) {
   let zDepth = disabled ? 0 : 2;
@@ -17,12 +19,23 @@ let getZDepth = function(disabled) {
 };
 
 
-let FloatingActionButton = React.createClass({
+const FloatingActionButton = React.createClass({
 
   mixins: [StylePropable],
 
   contextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   propTypes: {
@@ -38,6 +51,7 @@ let FloatingActionButton = React.createClass({
     onTouchEnd: React.PropTypes.func,
     onTouchStart: React.PropTypes.func,
     secondary: React.PropTypes.bool,
+    style: React.PropTypes.object,
   },
 
   getInitialState() {
@@ -47,6 +61,7 @@ let FloatingActionButton = React.createClass({
       initialZDepth: zDepth,
       touch: false,
       zDepth: zDepth,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
   },
 
@@ -54,7 +69,10 @@ let FloatingActionButton = React.createClass({
     this.setState(getZDepth(this.props.disabled));
   },
 
-  componentWillReceiveProps(newProps) {
+  componentWillReceiveProps(newProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
+
     if (newProps.disabled !== this.props.disabled) {
       this.setState(getZDepth(newProps.disabled));
     }
@@ -80,17 +98,17 @@ let FloatingActionButton = React.createClass({
 
 
   getTheme() {
-    return this.context.muiTheme.component.floatingActionButton;
+    return this.state.muiTheme.floatingActionButton;
   },
 
   _getIconColor() {
     return this.props.disabled ? this.getTheme().disabledTextColor :
-      this.props.secondary ? this.getTheme().secondaryIconColor :
-      this.getTheme().iconColor;
+      (this.props.secondary ? this.getTheme().secondaryIconColor :
+      this.getTheme().iconColor);
   },
 
   getStyles() {
-    let themeVariables = this.context.muiTheme.component.floatingActionButton;
+    let themeVariables = this.state.muiTheme.floatingActionButton;
 
     let styles = {
       root: {
@@ -154,14 +172,14 @@ let FloatingActionButton = React.createClass({
       iconElement =
         <FontIcon
           className={iconClassName}
-          style={this.mergeAndPrefix(
+          style={this.mergeStyles(
             styles.icon,
             mini && styles.iconWhenMini,
             iconStyle)}/>;
     }
 
     let children = Children.extend(this.props.children, {
-      style: this.mergeAndPrefix(
+      style: this.mergeStyles(
         styles.icon,
         mini && styles.iconWhenMini,
         iconStyle),
@@ -179,7 +197,7 @@ let FloatingActionButton = React.createClass({
 
     return (
       <Paper
-        style={this.mergeAndPrefix(styles.root, this.props.style)}
+        style={this.mergeStyles(styles.root, this.props.style)}
         zDepth={this.state.zDepth}
         circle={true}>
 
@@ -188,15 +206,16 @@ let FloatingActionButton = React.createClass({
           {...buttonEventHandlers}
           ref="container"
           disabled={disabled}
-          style={this.mergeAndPrefix(
+          style={this.mergeStyles(
             styles.container,
-            this.props.mini && styles.containerWhenMini
+            this.props.mini && styles.containerWhenMini,
+            iconStyle
           )}
           focusRippleColor={styles.icon.color}
           touchRippleColor={styles.icon.color}>
             <div
               ref="overlay"
-              style={this.mergeAndPrefix(
+              style={this.prepareStyles(
                 styles.overlay,
                 (this.state.hovered && !this.props.disabled) && styles.overlayWhenHovered
               )}>
@@ -249,11 +268,11 @@ let FloatingActionButton = React.createClass({
   _handleKeyboardFocus(e, keyboardFocused) {
     if (keyboardFocused && !this.props.disabled) {
       this.setState({ zDepth: this.state.initialZDepth + 1 });
-      React.findDOMNode(this.refs.overlay).style.backgroundColor = ColorManipulator.fade(this.getStyles().icon.color, 0.4);
+      ReactDOM.findDOMNode(this.refs.overlay).style.backgroundColor = ColorManipulator.fade(this.getStyles().icon.color, 0.4);
     }
     else if (!this.state.hovered) {
       this.setState({ zDepth: this.state.initialZDepth });
-      React.findDOMNode(this.refs.overlay).style.backgroundColor = 'transparent';
+      ReactDOM.findDOMNode(this.refs.overlay).style.backgroundColor = 'transparent';
     }
   },
 

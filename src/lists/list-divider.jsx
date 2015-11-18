@@ -1,8 +1,9 @@
-let React = require('react/addons');
-let StylePropable = require('../mixins/style-propable');
+const React = require('react');
+const StylePropable = require('../mixins/style-propable');
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
-
-let ListDivider = React.createClass({
+const ListDivider = React.createClass({
 
   mixins: [StylePropable],
 
@@ -12,26 +13,51 @@ let ListDivider = React.createClass({
 
   propTypes: {
     inset: React.PropTypes.bool,
+    style: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   render() {
-    let {
+    const {
       inset,
       style,
       ...other,
     } = this.props;
 
-    let mergedStyles = this.mergeAndPrefix({
+    const mergedStyles = this.mergeStyles({
       margin: 0,
       marginTop: -1,
       marginLeft: inset ? 72 : 0,
       height: 1,
       border: 'none',
-      backgroundColor: this.context.muiTheme.palette.borderColor,
+      backgroundColor: this.state.muiTheme.rawTheme.palette.borderColor,
     }, style);
 
     return (
-      <hr {...other} style={mergedStyles} />
+      <hr {...other} style={this.prepareStyles(mergedStyles)} />
     );
   },
 });

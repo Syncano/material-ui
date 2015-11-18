@@ -1,12 +1,19 @@
 import React from 'react';
+const ReactDOM = require('react-dom');
 const StylePropable = require('./mixins/style-propable');
 const AutoPrefix = require('./styles/auto-prefix');
 const Transitions = require("./styles/transitions");
 const Paper = require('./paper');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
 const VIEWBOX_SIZE = 32;
 const RefreshIndicator = React.createClass({
   mixins: [StylePropable],
+
+  contextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
 
   propTypes: {
     left: React.PropTypes.number.isRequired,
@@ -25,8 +32,28 @@ const RefreshIndicator = React.createClass({
     };
   },
 
-  contextTypes: {
+  //for passing default theme context to children
+  childContextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   componentDidMount() {
@@ -34,8 +61,8 @@ const RefreshIndicator = React.createClass({
   },
 
   componentDidUpdate() {
-    this._scalePath(React.findDOMNode(this.refs.path), 0);
-    this._rotateWrapper(React.findDOMNode(this.refs.wrapper));
+    this._scalePath(ReactDOM.findDOMNode(this.refs.path), 0);
+    this._rotateWrapper(ReactDOM.findDOMNode(this.refs.wrapper));
   },
 
   render() {
@@ -43,7 +70,7 @@ const RefreshIndicator = React.createClass({
     return (
       <Paper
         circle={true}
-        style={this.mergeAndPrefix(rootStyle, this.props.style)}
+        style={this.mergeStyles(rootStyle, this.props.style)}
         ref="indicatorCt"
       >
         {this._renderChildren()}
@@ -57,7 +84,7 @@ const RefreshIndicator = React.createClass({
     if (this.props.status !== 'ready') {
       const circleStyle = this._getCircleStyle(paperSize);
       childrenCmp = (
-        <div ref="wrapper" style={this.mergeAndPrefix({
+        <div ref="wrapper" style={this.prepareStyles({
             transition: Transitions.create('transform', '20s', null, 'linear'),
             width: '100%',
             height: '100%',
@@ -70,7 +97,7 @@ const RefreshIndicator = React.createClass({
             viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
           >
             <circle ref="path"
-              style={this.mergeAndPrefix(circleStyle.style, {
+              style={this.prepareStyles(circleStyle.style, {
                 transition: Transitions.create('all', '1.5s', null, 'ease-in-out'),
               })}
               {...circleStyle.attr}
@@ -89,12 +116,12 @@ const RefreshIndicator = React.createClass({
           viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
         >
           <circle
-            style={this.mergeAndPrefix(circleStyle.style)}
+            style={this.prepareStyles(circleStyle.style)}
             {...circleStyle.attr}
           >
           </circle>
           <polygon
-            style={this.mergeAndPrefix(polygonStyle.style)}
+            style={this.prepareStyles(polygonStyle.style)}
             {...polygonStyle.attr}
           />
         </svg>
@@ -105,7 +132,7 @@ const RefreshIndicator = React.createClass({
   },
 
   _getTheme() {
-    return this.context.muiTheme.component.refreshIndicator;
+    return this.state.muiTheme.refreshIndicator;
   },
 
   _getPaddingSize() {
@@ -223,19 +250,24 @@ const RefreshIndicator = React.createClass({
     const perimeter = Math.PI * 2 * circle.radiu;
     const arcLen = perimeter * 0.64;
 
+    let strokeDasharray, strokeDashoffset, transitionDuration;
     if (currStep === 0) {
-      path.style.strokeDasharray = '1, 200';
-      path.style.strokeDashoffset = 0;
-      path.style[this.prefixed('transitionDuration')] = '0ms';
+      strokeDasharray = '1, 200';
+      strokeDashoffset = 0;
+      transitionDuration = '0ms';
     } else if (currStep === 1) {
-      path.style.strokeDasharray = arcLen + ', 200';
-      path.style.strokeDashoffset = -15;
-      path.style[this.prefixed('transitionDuration')] = '750ms';
+      strokeDasharray = arcLen + ', 200';
+      strokeDashoffset = -15;
+      transitionDuration = '750ms';
     } else {
-      path.style.strokeDasharray = arcLen + ',200';
-      path.style.strokeDashoffset = -(perimeter - 1);
-      path.style[this.prefixed('transitionDuration')] = '850ms';
+      strokeDasharray = arcLen + ',200';
+      strokeDashoffset = -(perimeter - 1);
+      transitionDuration = '850ms';
     }
+
+    AutoPrefix.set(path.style, "strokeDasharray", strokeDasharray);
+    AutoPrefix.set(path.style, "strokeDashoffset", strokeDashoffset);
+    AutoPrefix.set(path.style, "transitionDuration", transitionDuration);
   },
 
   _rotateWrapper(wrapper) {
@@ -251,7 +283,7 @@ const RefreshIndicator = React.createClass({
     setTimeout(() => {
       if (this.isMounted()) {
         AutoPrefix.set(wrapper.style, "transform", "rotate(1800deg)");
-        wrapper.style.transitionDuration = "10s";
+        AutoPrefix.set(wrapper.style, "transitionDuration", "10s");
         AutoPrefix.set(wrapper.style, "transitionTimingFunction", "linear");
       }
     }, 50);

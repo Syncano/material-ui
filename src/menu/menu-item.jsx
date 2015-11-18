@@ -1,7 +1,9 @@
-let React = require('react');
-let StylePropable = require('../mixins/style-propable');
-let FontIcon = require('../font-icon');
-let Toggle = require('../toggle');
+const React = require('react');
+const StylePropable = require('../mixins/style-propable');
+const FontIcon = require('../font-icon');
+const Toggle = require('../toggle');
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
 const Types = {
   LINK: 'LINK',
@@ -10,7 +12,7 @@ const Types = {
 };
 
 
-let MenuItem = React.createClass({
+const MenuItem = React.createClass({
 
   mixins: [StylePropable],
 
@@ -33,7 +35,32 @@ let MenuItem = React.createClass({
     onTouchTap: React.PropTypes.func,
     onToggle: React.PropTypes.func,
     selected: React.PropTypes.bool,
+    style: React.PropTypes.object,
     active: React.PropTypes.bool,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   statics: {
@@ -49,14 +76,22 @@ let MenuItem = React.createClass({
   },
 
   getTheme() {
-    return this.context.muiTheme.component.menuItem;
+    return this.state.muiTheme.menuItem;
   },
 
   getSpacing() {
-    return this.context.muiTheme.spacing;
+    return this.state.muiTheme.rawTheme.spacing;
   },
 
   getStyles() {
+    const isRtl = this.context.muiTheme.isRtl;
+
+    const right = isRtl ? 'left' : 'right';
+    const left  = isRtl ? 'right' : 'left';
+
+    const marginRight = isRtl ? 'marginLeft': 'marginRight';
+    const paddingLeft = isRtl ? 'paddingRight': 'paddingLeft';
+
     let styles = {
       root: {
         userSelect: 'none',
@@ -64,39 +99,39 @@ let MenuItem = React.createClass({
         lineHeight: this.getTheme().height + 'px',
         paddingLeft: this.getTheme().padding,
         paddingRight: this.getTheme().padding,
-        color: this.context.muiTheme.palette.textColor,
+        color: this.state.muiTheme.rawTheme.palette.textColor,
       },
       number: {
-        float: 'right',
+        float: right,
         width: 24,
         textAlign: 'center',
       },
       attribute: {
-        float: 'right',
+        float: right,
       },
       iconRight: {
         lineHeight: this.getTheme().height + 'px',
-        float: 'right',
+        float: right,
       },
       icon: {
-        float: 'left',
+        float: left,
         lineHeight: this.getTheme().height + 'px',
-        marginRight: this.getSpacing().desktopGutter,
+        [marginRight]: this.getSpacing().desktopGutter,
       },
       data: {
         display: 'block',
-        paddingLeft: this.getSpacing().desktopGutter * 2,
+        [paddingLeft]: this.getSpacing().desktopGutter * 2,
         lineHeight: this.getTheme().dataHeight + 'px',
         height: this.getTheme().dataHeight + 'px',
         verticalAlign: 'top',
         top: -12,
         position: 'relative',
         fontWeight: 300,
-        color: this.context.muiTheme.palette.textColor,
+        color: this.state.muiTheme.rawTheme.palette.textColor,
       },
       toggle: {
-        marginTop: ((this.getTheme().height - this.context.muiTheme.component.radioButton.size) / 2),
-        float: 'right',
+        marginTop: ((this.getTheme().height - this.state.muiTheme.radioButton.size) / 2),
+        float: right,
         width: 42,
       },
       rootWhenHovered: {
@@ -107,7 +142,7 @@ let MenuItem = React.createClass({
       },
       rootWhenDisabled: {
         cursor: 'default',
-        color: this.context.muiTheme.palette.disabledColor,
+        color: this.state.muiTheme.rawTheme.palette.disabledColor,
       },
     };
 
@@ -123,11 +158,11 @@ let MenuItem = React.createClass({
     let toggleElement;
     let styles = this.getStyles();
 
-    if (this.props.iconClassName) icon = <FontIcon style={this.mergeAndPrefix(styles.icon, this.props.iconStyle, this.props.selected && styles.rootWhenSelected)} className={this.props.iconClassName} />;
-    if (this.props.iconRightClassName) iconRight = <FontIcon style={this.mergeAndPrefix(styles.iconRight, this.props.iconRightStyle)} className={this.props.iconRightClassName} />;
-    if (this.props.data) data = <span style={this.mergeAndPrefix(styles.data)}>{this.props.data}</span>;
-    if (this.props.number !== undefined) number = <span style={this.mergeAndPrefix(styles.number)}>{this.props.number}</span>;
-    if (this.props.attribute !== undefined) attribute = <span style={this.mergeAndPrefix(styles.style)}>{this.props.attribute}</span>;
+    if (this.props.iconClassName) icon = <FontIcon style={this.mergeStyles(styles.icon, this.props.iconStyle, this.props.selected && styles.rootWhenSelected)} className={this.props.iconClassName} />;
+    if (this.props.iconRightClassName) iconRight = <FontIcon style={this.mergeStyles(styles.iconRight, this.props.iconRightStyle)} className={this.props.iconRightClassName} />;
+    if (this.props.data) data = <span style={this.prepareStyles(styles.data)}>{this.props.data}</span>;
+    if (this.props.number !== undefined) number = <span style={this.prepareStyles(styles.number)}>{this.props.number}</span>;
+    if (this.props.attribute !== undefined) attribute = <span style={this.prepareStyles(styles.style)}>{this.props.attribute}</span>;
     if (this.props.icon) icon = this.props.icon;
 
     if (this.props.toggle) {
@@ -152,7 +187,7 @@ let MenuItem = React.createClass({
         onTouchTap={this._handleTouchTap}
         onMouseEnter={this._handleMouseEnter}
         onMouseLeave={this._handleMouseLeave}
-        style={this.mergeAndPrefix(
+        style={this.prepareStyles(
           styles.root,
           this.props.selected && styles.rootWhenSelected,
           (this.props.active && !this.props.disabled) && styles.rootWhenHovered,
@@ -161,9 +196,9 @@ let MenuItem = React.createClass({
 
         {icon}
         {this.props.children}
-        {data}
-        {attribute}
         {number}
+        {attribute}
+        {data}
         {toggleElement}
         {iconRight}
 
@@ -184,7 +219,7 @@ let MenuItem = React.createClass({
   },
 
   _handleMouseLeave(e) {
-    if (!this.props.disabled && this.props.onMouseLeave) this.props.onMouseLeave(e,this.props.index);
+    if (!this.props.disabled && this.props.onMouseLeave) this.props.onMouseLeave(e, this.props.index);
   },
 });
 

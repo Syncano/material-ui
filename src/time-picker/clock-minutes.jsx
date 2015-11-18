@@ -1,8 +1,10 @@
-let React = require('react');
-let StylePropable = require('../mixins/style-propable');
-let ClockNumber = require("./clock-number");
-let ClockPointer = require("./clock-pointer");
-
+const React = require('react');
+const ReactDOM = require('react-dom');
+const StylePropable = require('../mixins/style-propable');
+const ClockNumber = require("./clock-number");
+const ClockPointer = require("./clock-pointer");
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
 function rad2deg(rad) {
   return rad * 57.29577951308232;
@@ -21,7 +23,7 @@ function getTouchEventOffsetValues(e) {
 }
 
 
-let ClockMinutes = React.createClass({
+const ClockMinutes = React.createClass({
 
   mixins: [StylePropable],
 
@@ -32,6 +34,30 @@ let ClockMinutes = React.createClass({
   propTypes: {
     initialMinutes: React.PropTypes.number,
     onChange: React.PropTypes.func,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   center: {x: 0, y: 0},
@@ -54,7 +80,7 @@ let ClockMinutes = React.createClass({
   },
 
   componentDidMount() {
-    let clockElement = React.findDOMNode(this.refs.mask);
+    let clockElement = ReactDOM.findDOMNode(this.refs.mask);
 
       this.center = {
         x: clockElement.offsetWidth / 2,
@@ -156,10 +182,10 @@ let ClockMinutes = React.createClass({
     let minutes = this._getMinuteNumbers();
 
     return (
-      <div ref="clock" style={this.mergeAndPrefix(styles.root)} >
+      <div ref="clock" style={this.prepareStyles(styles.root)} >
         <ClockPointer value={minutes.selected} type="minute" />
         {minutes.numbers}
-        <div ref="mask" style={this.mergeAndPrefix(styles.hitMask)} hasSelected={minutes.hasSelected}
+        <div ref="mask" style={this.prepareStyles(styles.hitMask)} hasSelected={minutes.hasSelected}
           onTouchMove={this.handleTouch} onTouchEnd={this.handleTouch}
           onMouseUp={this.handleUp} onMouseMove={this.handleMove} />
       </div>

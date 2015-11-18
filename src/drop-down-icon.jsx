@@ -1,17 +1,30 @@
-let React = require('react');
-let StylePropable = require('./mixins/style-propable');
-let Transitions = require('./styles/transitions');
-let ClickAwayable = require('./mixins/click-awayable');
-let FontIcon = require('./font-icon');
-let Menu = require('./menu/menu');
+const React = require('react');
+const StylePropable = require('./mixins/style-propable');
+const Transitions = require('./styles/transitions');
+const ClickAwayable = require('./mixins/click-awayable');
+const FontIcon = require('./font-icon');
+const Menu = require('./menu/menu');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
 
-let DropDownIcon = React.createClass({
+const DropDownIcon = React.createClass({
 
   mixins: [StylePropable, ClickAwayable],
 
   contextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   propTypes: {
@@ -21,12 +34,21 @@ let DropDownIcon = React.createClass({
     iconStyle: React.PropTypes.object,
     iconClassName: React.PropTypes.string,
     iconLigature: React.PropTypes.string,
+    style: React.PropTypes.object,
   },
 
   getInitialState() {
     return {
       open: false,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   getDefaultProps() {
@@ -47,7 +69,7 @@ let DropDownIcon = React.createClass({
   },
 
   getStyles() {
-    let spacing = this.context.muiTheme.spacing;
+    let spacing = this.state.muiTheme.rawTheme.spacing;
     let iconWidth = 48;
     let styles = {
       root: {
@@ -87,7 +109,7 @@ let DropDownIcon = React.createClass({
     let styles = this.getStyles();
 
     return (
-      <div {...other} style={this.mergeAndPrefix(styles.root, this.props.style)}>
+      <div {...other} style={this.prepareStyles(styles.root, this.props.style)}>
           <div onTouchTap={this._onControlClick}>
               <FontIcon
                 className={iconClassName}
@@ -96,7 +118,7 @@ let DropDownIcon = React.createClass({
           </div>
           <Menu
             ref="menuItems"
-            style={this.mergeAndPrefix(styles.menu)}
+            style={styles.menu}
             menuItems={menuItems}
             menuItemStyle={styles.menuItem}
             hideable={true}

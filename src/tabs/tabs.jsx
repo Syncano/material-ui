@@ -1,11 +1,13 @@
-let React = require('react/addons');
-let TabTemplate = require('./tabTemplate');
-let InkBar = require('../ink-bar');
-let StylePropable = require('../mixins/style-propable');
-let Controllable = require('../mixins/controllable');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const TabTemplate = require('./tabTemplate');
+const InkBar = require('../ink-bar');
+const StylePropable = require('../mixins/style-propable');
+const Controllable = require('../mixins/controllable');
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
-
-let Tabs = React.createClass({
+const Tabs = React.createClass({
 
   mixins: [StylePropable, Controllable],
 
@@ -18,11 +20,25 @@ let Tabs = React.createClass({
     initialSelectedIndex: React.PropTypes.number,
     inkBarStyle: React.PropTypes.object,
     tabItemContainerStyle: React.PropTypes.object,
+    tabTemplate: React.PropTypes.func,
+    style: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   getDefaultProps() {
     return {
       initialSelectedIndex : 0,
+      tabTemplate: TabTemplate,
     };
   },
 
@@ -34,15 +50,16 @@ let Tabs = React.createClass({
       selectedIndex: valueLink.value ?
         this._getSelectedIndex(this.props) :
         initialIndex < this.getTabCount() ?
-          initialIndex :
-          0,
+        initialIndex :
+        0,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
   },
 
   getEvenWidth(){
     return (
       parseInt(window
-        .getComputedStyle(React.findDOMNode(this))
+        .getComputedStyle(ReactDOM.findDOMNode(this))
         .getPropertyValue('width'), 10)
     );
   },
@@ -51,12 +68,15 @@ let Tabs = React.createClass({
     return React.Children.count(this.props.children);
   },
 
-  componentWillReceiveProps(newProps) {
+  componentWillReceiveProps(newProps, nextContext) {
     let valueLink = this.getValueLink(newProps);
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
 
     if (valueLink.value){
       this.setState({selectedIndex: this._getSelectedIndex(newProps)});
     }
+
+    this.setState({muiTheme: newMuiTheme});
   },
 
   render() {
@@ -68,10 +88,11 @@ let Tabs = React.createClass({
       style,
       tabWidth,
       tabItemContainerStyle,
+      tabTemplate,
       ...other,
       } = this.props;
 
-    let themeVariables = this.context.muiTheme.component.tabs;
+    let themeVariables = this.state.muiTheme.tabs;
     let styles = {
       tabItemContainer: {
         margin: 0,
@@ -101,7 +122,7 @@ let Tabs = React.createClass({
         }
 
         tabContent.push(tab.props.children ?
-          React.createElement(TabTemplate, {
+          React.createElement(tabTemplate, {
             key: index,
             selected: this._getSelected(tab, index),
           }, tab.props.children) : undefined);
@@ -134,14 +155,14 @@ let Tabs = React.createClass({
     return (
       <div
         {...other}
-        style={this.mergeAndPrefix(style)}>
-        <div style={this.mergeAndPrefix(styles.tabItemContainer, tabItemContainerStyle)}>
+        style={this.prepareStyles(style)}>
+        <div style={this.prepareStyles(styles.tabItemContainer, tabItemContainerStyle)}>
           {tabs}
         </div>
         <div style={{width: inkBarContainerWidth}}>
           {inkBar}
         </div>
-        <div style={this.mergeAndPrefix(contentContainerStyle)}>
+        <div style={this.prepareStyles(contentContainerStyle)}>
           {tabContent}
         </div>
       </div>
