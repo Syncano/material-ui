@@ -1,4 +1,7 @@
-#[Material-UI](http://callemall.github.io/material-ui/) [![npm package](https://img.shields.io/npm/v/material-ui.svg?style=flat-square)](https://www.npmjs.org/package/material-ui) [![Build Status](https://img.shields.io/travis/callemall/material-ui.svg?style=flat-square)](https://travis-ci.org/callemall/material-ui) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-f81a65.svg?style=flat-square)](https://gitter.im/callemall/material-ui?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+#[Material-UI](http://callemall.github.io/material-ui/)
+[![npm package](https://img.shields.io/npm/v/material-ui.svg?style=flat-square)](https://www.npmjs.org/package/material-ui)
+[![Build Status](https://travis-ci.org/callemall/material-ui.svg?branch=master)](https://travis-ci.org/callemall/material-ui)
+[![Gitter](https://img.shields.io/badge/gitter-join%20chat-f81a65.svg?style=flat-square)](https://gitter.im/callemall/material-ui?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![PeerDependencies](https://img.shields.io/david/peer/callemall/material-ui.svg?style=flat-square)](https://david-dm.org/callemall/material-ui#info=peerDependencies&view=list)
 [![Dependencies](https://img.shields.io/david/callemall/material-ui.svg?style=flat-square)](https://david-dm.org/callemall/material-ui)
@@ -10,7 +13,9 @@ Check out our [documentation site](http://www.material-ui.com/) for live example
 
 ## Prerequisites
 
-We recommend that you get started with the [React Library](http://facebook.github.io/react/) before diving into material-ui for a better understanding. Should you choose to skip this, don't worry, we'll explain relevant React concepts as they come along.
+We recommend that you get to know [React](http://facebook.github.io/react/) before diving into material-ui. Material-UI is a set of React components, so understanding how React fits into web development is important.
+
+(If you're not familiar with Node, or with the concept of Single Page Applications (SPAs), head over to the [documentation website](http://material-ui.com/#/get-started/prerequisites) for a quick introduction before you read on.)
 
 ## Installation
 
@@ -25,7 +30,7 @@ Some components use [react-tap-event-plugin](https://github.com/zilverline/react
 listen for touch events. This dependency is temporary and will go away once react v1.0 is released. Until then, be
 sure to inject this plugin at the start of your app.
 ```js
-var injectTapEventPlugin = require("react-tap-event-plugin");
+let injectTapEventPlugin = require("react-tap-event-plugin");
 
 //Needed for onTouchTap
 //Can go away when react 1.0 release
@@ -35,61 +40,43 @@ injectTapEventPlugin();
 ```
 
 ### Roboto Font
-Be sure to include the [Roboto](http://www.google.com/fonts/specimen/Roboto) font in your project.
-Here are [some instructions](http://www.google.com/fonts#UsePlace:use/Collection:Roboto:400,300,500) on how to include it in your project.
+Material-UI was designed with the [Roboto](http://www.google.com/fonts/specimen/Roboto) font in mind. So be sure to include it in your project. Here are [some instructions](http://www.google.com/fonts#UsePlace:use/Collection:Roboto:400,300,500) on how to do so.
 
 ## Usage
 
-Once material-ui is included in your project, you can use the components this way:
+Using material-ui components is very straightforward. Once material-ui is included in your project, you can use the components this way:
+
 ```js
-/** MyAwesomeReactComponent.jsx */
+//Basic React component that renders a material-ui
+//raised button with the text "Default"
 
-var React = require('react'),
-  mui = require('material-ui'),
-  ThemeManager = new mui.Styles.ThemeManager(),
-  RaisedButton = mui.RaisedButton;
+const React = require('react');
+const RaisedButton = require('material-ui/lib/raised-button');
 
-var MyAwesomeReactComponent = React.createClass({
-
-  childContextTypes: {
-    muiTheme: React.PropTypes.object
-  },
-
-  getChildContext: function() {
-    return {
-      muiTheme: ThemeManager.getCurrentTheme()
-    };
-  },
-
-  render: function() {
+const MyAwesomeReactComponent = React.createClass({
+  render() {
     return (
         <RaisedButton label="Default" />
     );
-  }
-
+  },
 });
 
 module.exports = MyAwesomeReactComponent;
 
 ```
 
-### Theme
-
-**Please note that since v0.8.0, you also need to define a theme for components to start working.** For instructions on implementing and using themes, visit our [documentation](http://material-ui.com/#/customization/themes).
-
 ## Customization
 
-Material-UI components have their styles defined inline. There are two approaches to overriding these styles:
+We have implemented a default theme to render all Material-UI components. Styling components to your liking is simple and hassle-free. This can be achieved in the following two ways:
 
-* Override individual component styles via the `style` prop
-* Define a Theme to apply overarching style changes
-
-This allows you to override variables used by components without having to modify material-ui source files directly.
+* [Use a custom theme to style components](http://material-ui.com/#/customization/themes)
+* [Override individual component styles via the `style` prop](http://material-ui.com/#/customization/inline-styles)
 
 ## Examples
-There are 2 projects that you can look at to help you get started. The first project can be found in the [example folder](https://github.com/callemall/material-ui/tree/master/example). This is a basic project that shows how you can consume material-ui components in your own project.
 
-The second project is the actual documentation site. This is a more complex project but will give examples of every component. Check out the [docs folder](https://github.com/callemall/material-ui/tree/master/docs) for build instructions.
+There are 2 projects that you can look at to get started. They can be found in the [examples folder](https://github.com/callemall/material-ui/tree/master/examples). These projects are basic examples that show how to consume material-ui components in your own project. The first project uses [browserify](http://browserify.org/) for module bundling and [gulp](http://gulpjs.com/) for JS task automation, while the second project uses [webpack](http://webpack.github.io/) for module bundling and building.
+
+The source code for this documentation site is also included in the repository. This is a slightly more complex project that also uses webpack, and contains examples of every material-ui component. Check out the [docs folder](https://github.com/callemall/material-ui/tree/master/docs) for build instructions.
 
 ## Contribute
 

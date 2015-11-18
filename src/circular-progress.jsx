@@ -1,10 +1,12 @@
-let React = require('react');
-let StylePropable = require('./mixins/style-propable');
-let AutoPrefix = require('./styles/auto-prefix');
-let Transitions = require("./styles/transitions");
+const React = require('react');
+const ReactDOM = require('react-dom');
+const StylePropable = require('./mixins/style-propable');
+const AutoPrefix = require('./styles/auto-prefix');
+const Transitions = require("./styles/transitions");
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
-
-let CircularProgress = React.createClass({
+const CircularProgress = React.createClass({
 
   mixins: [StylePropable],
 
@@ -15,11 +17,36 @@ let CircularProgress = React.createClass({
       max:  React.PropTypes.number,
       size: React.PropTypes.number,
       color: React.PropTypes.string,
+      style: React.PropTypes.object,
       innerStyle: React.PropTypes.object,
   },
 
   contextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   _getRelativeValue() {
@@ -34,8 +61,8 @@ let CircularProgress = React.createClass({
   },
 
   componentDidMount() {
-    let wrapper = React.findDOMNode(this.refs.wrapper);
-    let path = React.findDOMNode(this.refs.path);
+    let wrapper = ReactDOM.findDOMNode(this.refs.wrapper);
+    let path = ReactDOM.findDOMNode(this.refs.path);
 
     this._scalePath(path);
     this._rotateWrapper(wrapper);
@@ -73,30 +100,28 @@ let CircularProgress = React.createClass({
     if (!this.isMounted()) return;
     if (this.props.mode !== "indeterminate") return;
 
-    AutoPrefix.set(wrapper.style, "transform", null);
-    AutoPrefix.set(wrapper.style, "transform", "rotate(0deg)");
-    wrapper.style.transitionDuration = "0ms";
+    AutoPrefix.set(wrapper.style, 'transform', 'rotate(0deg)');
+    AutoPrefix.set(wrapper.style, 'transitionDuration', '0ms');
 
     setTimeout(() => {
-      AutoPrefix.set(wrapper.style, "transform", "rotate(1800deg)");
-      wrapper.style.transitionDuration = "10s";
-      //wrapper.style.webkitTransitionTimingFunction = "linear";
-      AutoPrefix.set(wrapper.style, "transitionTimingFunction", "linear");
+      AutoPrefix.set(wrapper.style, 'transform', 'rotate(1800deg)');
+      AutoPrefix.set(wrapper.style, 'transitionDuration', '10s');
+      AutoPrefix.set(wrapper.style, 'transitionTimingFunction', 'linear');
     }, 50);
   },
 
   getDefaultProps() {
-      return {
-          mode: "indeterminate",
-          value: 0,
-          min: 0,
-          max: 100,
-          size: 1,
-      };
+    return {
+      mode: "indeterminate",
+      value: 0,
+      min: 0,
+      max: 100,
+      size: 1,
+    };
   },
 
   getTheme() {
-    return this.context.muiTheme.palette;
+    return this.state.muiTheme.rawTheme.palette;
   },
 
   getStyles(zoom) {
@@ -160,10 +185,10 @@ let CircularProgress = React.createClass({
     let styles = this.getStyles(size || 1);
 
     return (
-      <div {...other} style={this.mergeAndPrefix(styles.root, style)} >
-        <div ref="wrapper" style={this.mergeAndPrefix(styles.wrapper, innerStyle)} >
-          <svg style={this.mergeAndPrefix(styles.svg)} >
-            <circle ref="path" style={this.mergeAndPrefix(styles.path)} cx="25" cy="25"
+      <div {...other} style={this.prepareStyles(styles.root, style)} >
+        <div ref="wrapper" style={this.prepareStyles(styles.wrapper, innerStyle)} >
+          <svg style={this.prepareStyles(styles.svg)} >
+            <circle ref="path" style={this.prepareStyles(styles.path)} cx="25" cy="25"
               r="20" fill="none" strokeWidth="2.5" strokeMiterlimit="10" />
           </svg>
         </div>

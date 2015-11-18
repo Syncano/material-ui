@@ -1,21 +1,34 @@
-let React = require('react');
-let KeyCode = require('./utils/key-code');
-let StylePropable = require('./mixins/style-propable');
-let Transitions = require('./styles/transitions');
-let UniqueId = require('./utils/unique-id');
-let WindowListenable = require('./mixins/window-listenable');
-let ClearFix = require('./clearfix');
-let FocusRipple = require('./ripples/focus-ripple');
-let TouchRipple = require('./ripples/touch-ripple');
-let Paper = require('./paper');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const KeyCode = require('./utils/key-code');
+const StylePropable = require('./mixins/style-propable');
+const Transitions = require('./styles/transitions');
+const UniqueId = require('./utils/unique-id');
+const WindowListenable = require('./mixins/window-listenable');
+const ClearFix = require('./clearfix');
+const FocusRipple = require('./ripples/focus-ripple');
+const TouchRipple = require('./ripples/touch-ripple');
+const Paper = require('./paper');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
-
-let EnhancedSwitch = React.createClass({
+const EnhancedSwitch = React.createClass({
 
   mixins: [WindowListenable, StylePropable],
 
   contextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   propTypes: {
@@ -32,7 +45,7 @@ let EnhancedSwitch = React.createClass({
       labelStyle: React.PropTypes.object,
       name: React.PropTypes.string,
       value: React.PropTypes.string,
-      label: React.PropTypes.string,
+      label: React.PropTypes.node,
       onSwitch: React.PropTypes.func,
       required: React.PropTypes.bool,
       disabled: React.PropTypes.bool,
@@ -40,6 +53,7 @@ let EnhancedSwitch = React.createClass({
       labelPosition: React.PropTypes.oneOf(['left', 'right']),
       disableFocusRipple: React.PropTypes.bool,
       disableTouchRipple: React.PropTypes.bool,
+      style: React.PropTypes.object,
     },
 
   windowListeners: {
@@ -51,19 +65,20 @@ let EnhancedSwitch = React.createClass({
     return {
       isKeyboardFocused: false,
       parentWidth: 100,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
   },
 
   getEvenWidth(){
     return (
       parseInt(window
-        .getComputedStyle(React.findDOMNode(this.refs.root))
+        .getComputedStyle(ReactDOM.findDOMNode(this.refs.root))
         .getPropertyValue('width'), 10)
     );
   },
 
   componentDidMount() {
-    let inputNode = React.findDOMNode(this.refs.checkbox);
+    let inputNode = ReactDOM.findDOMNode(this.refs.checkbox);
     if (!this.props.switched || inputNode.checked !== this.props.switched) {
       this.props.onParentShouldUpdate(inputNode.checked);
     }
@@ -77,7 +92,7 @@ let EnhancedSwitch = React.createClass({
     window.removeEventListener("resize", this._handleResize);
   },
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps, nextContext) {
     let hasCheckedLinkProp = nextProps.hasOwnProperty('checkedLink');
     let hasCheckedProp = nextProps.hasOwnProperty('checked');
     let hasToggledProp = nextProps.hasOwnProperty('toggled');
@@ -85,6 +100,7 @@ let EnhancedSwitch = React.createClass({
       (nextProps.hasOwnProperty('defaultSwitched') &&
       (nextProps.defaultSwitched !== this.props.defaultSwitched));
     let newState = {};
+    newState.muiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
 
     if (hasCheckedProp) {
       newState.switched = nextProps.checked;
@@ -102,14 +118,16 @@ let EnhancedSwitch = React.createClass({
     if (newState.switched !== undefined && (newState.switched !== this.props.switched)) {
       this.props.onParentShouldUpdate(newState.switched);
     }
+
+    this.setState(newState);
   },
 
   getTheme() {
-    return this.context.muiTheme.palette;
+    return this.state.muiTheme.rawTheme.palette;
   },
 
   getStyles() {
-    let spacing = this.context.muiTheme.spacing;
+    let spacing = this.state.muiTheme.rawTheme.spacing;
     let switchWidth = 60 - spacing.desktopGutterLess;
     let labelWidth = 'calc(100% - 60px)';
     let styles = {
@@ -190,8 +208,8 @@ let EnhancedSwitch = React.createClass({
     } = this.props;
 
     let styles = this.getStyles();
-    let wrapStyles = this.mergeAndPrefix(styles.wrap, this.props.iconStyle);
-    let rippleStyle = this.mergeAndPrefix(styles.ripple, this.props.rippleStyle);
+    let wrapStyles = this.prepareStyles(styles.wrap, this.props.iconStyle);
+    let rippleStyle = this.prepareStyles(styles.ripple, this.props.rippleStyle);
     let rippleColor = this.props.hasOwnProperty('rippleColor') ? this.props.rippleColor :
                       this.getTheme().primary1Color;
 
@@ -202,7 +220,7 @@ let EnhancedSwitch = React.createClass({
 
     let inputId = this.props.id || UniqueId.generate();
 
-    let labelStyle = this.mergeAndPrefix(styles.label, this.props.labelStyle);
+    let labelStyle = this.prepareStyles(styles.label, this.props.labelStyle);
     let labelElement = this.props.label ? (
       <label style={labelStyle} htmlFor={inputId}>
         {this.props.label}
@@ -212,7 +230,7 @@ let EnhancedSwitch = React.createClass({
     let inputProps = {
       ref: "checkbox",
       type: this.props.inputType,
-      style: this.mergeAndPrefix(styles.input),
+      style: this.prepareStyles(styles.input),
       name: this.props.name,
       value: this.props.value,
       defaultChecked: this.props.defaultSwitched,
@@ -271,7 +289,7 @@ let EnhancedSwitch = React.createClass({
         </div>
       ) : (
         <div style={wrapStyles}>
-          <div style={this.props.trackStyle}/>
+          <div style={this.prepareStyles(this.props.trackStyle)}/>
           <Paper style={this.props.thumbStyle} zDepth={1} circle={true}> {ripples} </Paper>
         </div>
     );
@@ -281,19 +299,19 @@ let EnhancedSwitch = React.createClass({
     // Position is left if not defined or invalid.
     let elementsInOrder = (labelPositionExist &&
       (this.props.labelPosition.toUpperCase() === "RIGHT")) ? (
-        <ClearFix style={this.mergeAndPrefix(styles.controls)}>
+        <ClearFix style={styles.controls}>
           {switchElement}
           {labelElement}
         </ClearFix>
       ) : (
-        <ClearFix style={this.mergeAndPrefix(styles.controls)}>
+        <ClearFix style={styles.controls}>
           {labelElement}
           {switchElement}
         </ClearFix>
     );
 
     return (
-      <div ref="root" className={className} style={this.mergeAndPrefix(styles.root, this.props.style)}>
+      <div ref="root" className={className} style={this.prepareStyles(styles.root, this.props.style)}>
           {inputElement}
           {elementsInOrder}
       </div>
@@ -302,14 +320,14 @@ let EnhancedSwitch = React.createClass({
 
 
   isSwitched() {
-    return React.findDOMNode(this.refs.checkbox).checked;
+    return ReactDOM.findDOMNode(this.refs.checkbox).checked;
   },
 
   // no callback here because there is no event
   setSwitched(newSwitchedValue) {
     if (!this.props.hasOwnProperty('checked') || this.props.checked === false) {
       this.props.onParentShouldUpdate(newSwitchedValue);
-      React.findDOMNode(this.refs.checkbox).checked = newSwitchedValue;
+      ReactDOM.findDOMNode(this.refs.checkbox).checked = newSwitchedValue;
     }
     else if (process.env.NODE_ENV !== 'production') {
       let message = 'Cannot call set method while checked is defined as a property.';
@@ -318,7 +336,7 @@ let EnhancedSwitch = React.createClass({
   },
 
   getValue() {
-    return React.findDOMNode(this.refs.checkbox).value;
+    return ReactDOM.findDOMNode(this.refs.checkbox).value;
   },
 
   isKeyboardFocused() {
@@ -331,7 +349,7 @@ let EnhancedSwitch = React.createClass({
       isKeyboardFocused: false,
     });
 
-    let isInputChecked = React.findDOMNode(this.refs.checkbox).checked;
+    let isInputChecked = ReactDOM.findDOMNode(this.refs.checkbox).checked;
 
     if (!this.props.hasOwnProperty('checked')) {
       this.props.onParentShouldUpdate(isInputChecked);

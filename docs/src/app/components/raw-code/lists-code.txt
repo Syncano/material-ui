@@ -81,10 +81,37 @@
 <List subheader="Nested List Items">
   <ListItem primaryText="Sent mail" leftIcon={<ContentSend />} />
   <ListItem primaryText="Drafts" leftIcon={<ContentDrafts />} />
-  <ListItem primaryText="Inbox" leftIcon={<ContentInbox />} open={true}>
-    <ListItem primaryText="Starred" leftIcon={<ActionGrade />} />
-    <ListItem primaryText="Sent Mail" leftIcon={<ContentSend />}>
-      <ListItem primaryText="Drafts" leftIcon={<ContentDrafts />} />
-    </ListItem>
-  </ListItem>
+  <ListItem
+    primaryText="Inbox"
+    leftIcon={<ContentInbox />}
+    initiallyOpen={true}
+    nestedItems={[
+      <ListItem primaryText="Starred" leftIcon={<ActionGrade />} />,
+      <ListItem
+        primaryText="Sent Mail"
+        leftIcon={<ContentSend />}
+        nestedItems={[
+          <ListItem primaryText="Drafts" leftIcon={<ContentDrafts />} />,
+        ]}
+      />,
+    ]}
+  />
 </List>
+
+// List with selected indicator based on HOC
+<SelectableList
+  valueLink={{value: this.state.selectedIndex, requestChange: this.handleUpdateSelectedIndex}}
+  subheader="Contacts">
+  <ListItem
+    value={1}
+    primaryText="Brendan Lim"
+    leftAvatar={<Avatar src="images/ok-128.jpg" />}/>
+  <ListItem
+    value={2}
+    primaryText="Grace Ng"
+    leftAvatar={<Avatar src="images/uxceo-128.jpg" />} />
+  <ListItem
+    value={3}
+    primaryText="Kerem Suer"
+    leftAvatar={<Avatar src="images/kerem-128.jpg" />} />
+</SelectableList>

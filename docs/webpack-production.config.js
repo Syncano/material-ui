@@ -16,7 +16,8 @@ var config = {
     extensions: ["", ".js", ".jsx", ".txt"],
     alias: {
       //material-ui requires will be searched in src folder, not in node_modules
-      'material-ui': path.resolve(__dirname, '../src')
+      'material-ui': path.resolve(__dirname, '../src'),
+      codemirror: path.resolve(__dirname, 'node_modules/codemirror')
     },
     //Modules will be searched for in these directories
     modulesDirectories: [
@@ -25,9 +26,13 @@ var config = {
       path.resolve(__dirname, '../src'),
       path.resolve(__dirname, '../node_modules'),
       path.resolve(__dirname, 'src/app/components/raw-code')
-    ],
+    ]
   },
   devtool: 'source-map',
+  //Configuration for server
+  devServer: {
+    contentBase: 'build'
+  },
   //Output file config
   output: {
     path: buildPath,    //Path of output file
@@ -40,6 +45,11 @@ var config = {
         warnings: false
       }
     }),
+    new webpack.DefinePlugin({
+      "process.env": {
+        NODE_ENV: JSON.stringify("production")
+      }
+    }),
     new HtmlWebpackPlugin({
         inject: false,
         template: path.join(__dirname, '/src/www/index.html')
@@ -48,7 +58,7 @@ var config = {
     new webpack.NoErrorsPlugin(),
     //Transfer Files
     new TransferWebpackPlugin([
-      {from: 'css'},
+      {from: 'www/css', to: 'css'},
       {from: 'www/images', to: 'images'}
     ], path.resolve(__dirname,"src"))
   ],
@@ -66,7 +76,7 @@ var config = {
         loaders: [
           {
             test: /\.(js|jsx)$/, //All .js and .jsx files
-            loader: 'babel-loader?stage=0', //babel loads jsx and es6-7
+            loader: 'babel-loader?optional=runtime&stage=0', //babel loads jsx and es6-7
             include: [__dirname, path.resolve(__dirname, '../src')], //include these files
             exclude: [nodeModulesPath]  //exclude node_modules so that they are not all compiled
           },

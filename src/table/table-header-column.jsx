@@ -1,9 +1,10 @@
-let React = require('react');
-let StylePropable = require('../mixins/style-propable');
-let Tooltip = require('../tooltip');
+const React = require('react');
+const StylePropable = require('../mixins/style-propable');
+const Tooltip = require('../tooltip');
+const DefaultRawTheme = require('../styles/raw-themes/light-raw-theme');
+const ThemeManager = require('../styles/theme-manager');
 
-
-let TableHeaderColumn = React.createClass({
+const TableHeaderColumn = React.createClass({
 
   mixins: [StylePropable],
 
@@ -19,14 +20,33 @@ let TableHeaderColumn = React.createClass({
     tooltipStyle: React.PropTypes.object,
   },
 
-  getInitialState() {
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
     return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
       hovered: false,
     };
   },
 
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
+  },
+
   getTheme() {
-    return this.context.muiTheme.component.tableHeaderColumn;
+    return this.state.muiTheme.tableHeaderColumn;
   },
 
   getStyles() {
@@ -77,7 +97,7 @@ let TableHeaderColumn = React.createClass({
         <Tooltip
           label={this.props.tooltip}
           show={this.state.hovered}
-          style={this.mergeAndPrefix(styles.tooltip, tooltipStyle)} />
+          style={this.mergeStyles(styles.tooltip, tooltipStyle)} />
       );
     }
 
@@ -85,7 +105,7 @@ let TableHeaderColumn = React.createClass({
       <th
         key={this.props.key}
         className={classes}
-        style={this.mergeAndPrefix(styles.root, style)}
+        style={this.prepareStyles(styles.root, style)}
         {...handlers}
         {...other}>
         {tooltip}

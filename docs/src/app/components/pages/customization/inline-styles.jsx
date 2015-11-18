@@ -1,12 +1,12 @@
-let React = require('react');
-let { Checkbox, Styles } = require('material-ui');
-let CodeBlock = require('../../code-example/code-block');
-let CodeExample = require('../../code-example/code-example');
+const React = require('react');
+const { Checkbox, Styles } = require('material-ui');
+const CodeBlock = require('../../code-example/code-block');
+const CodeExample = require('../../code-example/code-example');
 
-let { Typography } = Styles;
+const { Typography } = Styles;
 
 
-class InlineStyles extends React.Component {
+const InlineStyles = React.createClass({
 
   getStyles() {
     return {
@@ -17,7 +17,7 @@ class InlineStyles extends React.Component {
         marginBottom: '12px',
         letterSpacing: '0',
         fontWeight: Typography.fontWeightNormal,
-        color: Typography.textDarkBlack
+        color: Typography.textDarkBlack,
       },
       title: {
         fontSize: '20px',
@@ -26,10 +26,10 @@ class InlineStyles extends React.Component {
         marginBottom: '13px',
         letterSpacing: '0',
         fontWeight: Typography.fontWeightMedium,
-        color: Typography.textDarkBlack
-      }
+        color: Typography.textDarkBlack,
+      },
     }
-  }
+  },
 
   render() {
     let codeOverrideStyles =
@@ -82,16 +82,17 @@ class InlineStyles extends React.Component {
             label="Checked the mail"
             style={{
               width: '50%',
-              margin: '0 auto'
+              margin: '0 auto',
             }}
             iconStyle={{
-              fill: '#FF4081'
+              fill: '#FF4081',
             }}/>
         </CodeExample>
         <p>
           If you would like to override a style property that has been defined
           inline, define your override via the style prop as demonstrated in
-          the example above. The style prop is an object that applies its
+          the example above. These overrides take precedence over the theme (if any) that is used
+          to render the component. The style prop is an object that applies its
           properties to the <b>root/outermost element</b> of the component. Some
           components provide additional style properties for greater styling
           control. If you need to override the inline styles of an element
@@ -109,7 +110,7 @@ class InlineStyles extends React.Component {
             label="Currently a UTD student"
             className="muidocs-checkbox-example"
             iconStyle={{
-              fill: '#FF9800'
+              fill: '#FF9800',
             }}/>
         </CodeExample>
         <p>
@@ -124,8 +125,8 @@ class InlineStyles extends React.Component {
 
       </div>
     );
-  }
+  },
 
-}
+});
 
 module.exports = InlineStyles;

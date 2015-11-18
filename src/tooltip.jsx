@@ -1,10 +1,12 @@
-let React = require('react');
-let StylePropable = require('./mixins/style-propable');
-let Transitions = require('./styles/transitions');
-let Colors = require('./styles/colors');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const StylePropable = require('./mixins/style-propable');
+const Transitions = require('./styles/transitions');
+const Colors = require('./styles/colors');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
-
-let Tooltip = React.createClass({
+const Tooltip = React.createClass({
 
   mixins: [StylePropable],
 
@@ -14,16 +16,37 @@ let Tooltip = React.createClass({
 
   propTypes: {
     className: React.PropTypes.string,
-    label: React.PropTypes.string.isRequired,
+    label: React.PropTypes.node.isRequired,
     show: React.PropTypes.bool,
     touch: React.PropTypes.bool,
-    verticalPosition: React.PropTypes.oneOf(['top','bottom']),
+    verticalPosition: React.PropTypes.oneOf(['top', 'bottom']),
     horizontalPosition: React.PropTypes.oneOf(['left', 'right', 'center']),
+    style: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   componentDidMount() {
     this._setRippleSize();
     this._setTooltipPosition();
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    this._setTooltipPosition();
+
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   componentDidUpdate() {
@@ -33,6 +56,7 @@ let Tooltip = React.createClass({
   getInitialState() {
     return {
       offsetWidth: null,
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
     };
   },
 
@@ -47,7 +71,7 @@ let Tooltip = React.createClass({
     let styles = {
       root: {
         position: 'absolute',
-        fontFamily: this.context.muiTheme.contentFontFamily,
+        fontFamily: this.state.muiTheme.rawTheme.fontFamily,
         fontSize: '10px',
         lineHeight: '22px',
         padding: '0 8px',
@@ -116,7 +140,7 @@ let Tooltip = React.createClass({
     let styles = this.getStyles();
     return (
       <div {...other}
-        style={this.mergeAndPrefix(
+        style={this.prepareStyles(
             styles.root,
             this.props.show && styles.rootWhenShown,
             this.props.touch && styles.rootWhenTouched,
@@ -124,17 +148,17 @@ let Tooltip = React.createClass({
           )}>
         <div
           ref="ripple"
-          style={this.mergeAndPrefix(
+          style={this.prepareStyles(
             styles.ripple,
             this.props.show && styles.rippleWhenShown)} />
-        <span style={this.mergeAndPrefix(styles.label)}>{this.props.label}</span>
+        <span style={this.prepareStyles(styles.label)}>{this.props.label}</span>
       </div>
     );
   },
 
   _setRippleSize() {
-    let ripple = React.findDOMNode(this.refs.ripple);
-    let tooltip = window.getComputedStyle(React.findDOMNode(this));
+    let ripple = ReactDOM.findDOMNode(this.refs.ripple);
+    let tooltip = window.getComputedStyle(ReactDOM.findDOMNode(this));
     let tooltipWidth = parseInt(tooltip.getPropertyValue("width"), 10) /
       (this.props.horizontalPosition === 'center' ? 2 : 1);
     let tooltipHeight = parseInt(tooltip.getPropertyValue("height"), 10);
@@ -152,7 +176,7 @@ let Tooltip = React.createClass({
   },
 
   _setTooltipPosition() {
-    let tooltip = React.findDOMNode(this);
+    let tooltip = ReactDOM.findDOMNode(this);
     this.setState({offsetWidth: tooltip.offsetWidth});
   },
 

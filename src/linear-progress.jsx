@@ -1,9 +1,11 @@
-let React = require('react');
-let StylePropable = require('./mixins/style-propable');
-let Transitions = require("./styles/transitions");
+const React = require('react');
+const ReactDOM = require('react-dom');
+const StylePropable = require('./mixins/style-propable');
+const Transitions = require("./styles/transitions");
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
-
-let LinearProgress = React.createClass({
+const LinearProgress = React.createClass({
 
   mixins: [StylePropable],
 
@@ -12,10 +14,35 @@ let LinearProgress = React.createClass({
     value: React.PropTypes.number,
     min:  React.PropTypes.number,
     max:  React.PropTypes.number,
+    style: React.PropTypes.object,
   },
 
   contextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   _getRelativeValue() {
@@ -30,8 +57,8 @@ let LinearProgress = React.createClass({
   },
 
   componentDidMount() {
-    let bar1 = React.findDOMNode(this.refs.bar1);
-    let bar2 = React.findDOMNode(this.refs.bar2);
+    let bar1 = ReactDOM.findDOMNode(this.refs.bar1);
+    let bar2 = ReactDOM.findDOMNode(this.refs.bar2);
 
     this._barUpdate(0, bar1, [
       [-35, 100],
@@ -53,16 +80,19 @@ let LinearProgress = React.createClass({
     if (!this.isMounted()) return;
     if (this.props.mode !== "indeterminate") return;
 
+    const right = this.state.muiTheme.isRtl ? 'left' : 'right';
+    const left  = this.state.muiTheme.isRtl ? 'right' : 'left';
+
     if (step === 0) {
-      barElement.style.left = stepValues[0][0] + "%";
-      barElement.style.right = stepValues[0][1] + "%";
+      barElement.style[left] = stepValues[0][0] + "%";
+      barElement.style[right] = stepValues[0][1] + "%";
     }
     else if (step === 1) {
       barElement.style.transitionDuration = "840ms";
     }
     else if (step === 2) {
-      barElement.style.left = stepValues[1][0] + "%";
-      barElement.style.right = stepValues[1][1] + "%";
+      barElement.style[left] = stepValues[1][0] + "%";
+      barElement.style[right] = stepValues[1][1] + "%";
     }
     else if (step === 3) {
       barElement.style.transitionDuration = "0ms";
@@ -79,7 +109,7 @@ let LinearProgress = React.createClass({
   },
 
   getTheme() {
-    return this.context.muiTheme.palette;
+    return this.state.muiTheme.rawTheme.palette;
   },
 
   getStyles() {
@@ -138,10 +168,10 @@ let LinearProgress = React.createClass({
     let styles = this.getStyles();
 
     return (
-      <div {...other} style={this.mergeAndPrefix(styles.root, style)}>
-        <div style={this.mergeAndPrefix(styles.bar)}>
-          <div ref="bar1" style={this.mergeAndPrefix(styles.barFragment1)}></div>
-          <div ref="bar2" style={this.mergeAndPrefix(styles.barFragment2)}></div>
+      <div {...other} style={this.prepareStyles(styles.root, style)}>
+        <div style={this.prepareStyles(styles.bar)}>
+          <div ref="bar1" style={this.prepareStyles(styles.barFragment1)}></div>
+          <div ref="bar2" style={this.prepareStyles(styles.barFragment2)}></div>
         </div>
       </div>
     );

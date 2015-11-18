@@ -1,8 +1,8 @@
-let React = require('react');
-let Router = require('react-router');
-let AppLeftNav = require('./app-left-nav');
-let FullWidthSection = require('./full-width-section');
-let { AppBar,
+const React = require('react');
+const Router = require('react-router');
+const AppLeftNav = require('./app-left-nav');
+const FullWidthSection = require('./full-width-section');
+const { AppBar,
       AppCanvas,
       FontIcon,
       IconButton,
@@ -15,76 +15,90 @@ let { AppBar,
       Tabs,
       Paper} = require('material-ui');
 
-let RouteHandler = Router.RouteHandler;
-let { Colors, Spacing, Typography } = Styles;
-let ThemeManager = new Styles.ThemeManager();
+const { StylePropable } = Mixins;
+const { Colors, Spacing, Typography } = Styles;
+const ThemeManager = Styles.ThemeManager;
+const DefaultRawTheme = Styles.LightRawTheme;
 
 
-class Master extends React.Component {
+const Master = React.createClass({
+  mixins: [StylePropable],
 
-  constructor() {
-    super();
-  }
+  getInitialState () {
+    let muiTheme = ThemeManager.getMuiTheme(DefaultRawTheme);
+    // To switch to RTL...
+    // muiTheme.isRtl = true;
+    return {
+      muiTheme,
+    };
+  },
+
+  childContextTypes : {
+    muiTheme: React.PropTypes.object,
+  },
 
   getChildContext() {
     return {
-      muiTheme: ThemeManager.getCurrentTheme()
-    }
-  }
+      muiTheme: this.state.muiTheme,
+    };
+  },
 
   getStyles() {
     let darkWhite = Colors.darkWhite;
     return {
       footer: {
         backgroundColor: Colors.grey900,
-        textAlign: 'center'
+        textAlign: 'center',
       },
       a: {
-        color: darkWhite
+        color: darkWhite,
       },
       p: {
         margin: '0 auto',
         padding: 0,
         color: Colors.lightWhite,
-        maxWidth: 335
+        maxWidth: 335,
       },
       github: {
         position: 'fixed',
         right: Spacing.desktopGutter/2,
         top: 8,
         zIndex: 5,
-        color: 'white'
+        color: 'white',
       },
        iconButton: {
-        color: darkWhite
+        color: darkWhite,
       },
     };
-  }
+  },
 
-  componentWillMount(){
-    ThemeManager.setComponentThemes({
-      inkBar: {
-        backgroundColor: Colors.yellow200,
-      },
-    });
-    this.setState({tabIndex: this._getSelectedIndex()});
+  componentWillMount() {
+    let newMuiTheme = this.state.muiTheme;
+    newMuiTheme.inkBar.backgroundColor = Colors.yellow200;
+    this.setState({
+      muiTheme: newMuiTheme,
+      tabIndex: this._getSelectedIndex()});
     let setTabsState = function() {
       this.setState({renderTabs: !(document.body.clientWidth <= 647)});
     }.bind(this);
     setTabsState();
     window.onresize = setTabsState;
-  }
+  },
 
-  componentWillReceiveProps() {
-    this.setState({tabIndex: this._getSelectedIndex()});
-  }
+  componentWillReceiveProps(nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({
+      tabIndex: this._getSelectedIndex(),
+      muiTheme: newMuiTheme,
+    });
+  },
 
   render() {
     let styles = this.getStyles();
     let title =
-      this.context.router.isActive('get-started') ? 'Get Started' :
-      this.context.router.isActive('customization') ? 'Customization' :
-      this.context.router.isActive('components') ? 'Components' : '';
+      this.props.history.isActive('/get-started') ? 'Get Started' :
+      this.props.history.isActive('/customization') ? 'Customization' :
+      this.props.history.isActive('/components') ? 'Components' : '';
 
     let githubButton = (
       <IconButton
@@ -108,18 +122,18 @@ class Master extends React.Component {
         {githubButton}
         {this.state.renderTabs ? this._getTabs(): this._getAppBar()}
 
-        <RouteHandler />
-        <AppLeftNav ref="leftNav" />
+        {this.props.children}
+        <AppLeftNav ref="leftNav" history={this.props.history} />
         <FullWidthSection style={styles.footer}>
-          <p style={styles.p}>
+          <p style={this.prepareStyles(styles.p)}>
             Hand crafted with love by the engineers at <a style={styles.a} href="http://call-em-all.com">Call-Em-All</a> and our
-            awesome <a style={styles.a} href="https://github.com/callemall/material-ui/graphs/contributors">contributors</a>.
+            awesome <a style={this.prepareStyles(styles.a)} href="https://github.com/callemall/material-ui/graphs/contributors">contributors</a>.
           </p>
           {githubButton2}
         </FullWidthSection>
       </AppCanvas>
     );
-  }
+  },
 
  _getTabs() {
     let styles = {
@@ -161,8 +175,8 @@ class Master extends React.Component {
         bottom:0,
       },
       tab: {
-        height: 64
-      }
+        height: 64,
+      },
 
     };
 
@@ -171,8 +185,8 @@ class Master extends React.Component {
         style={styles.svgLogoContainer}
         linkButton={true}
         href="/#/home">
-        <img style={styles.svgLogo} src="images/material-ui-logo.svg"/>
-        <span style={styles.span}>material ui</span>
+        <img style={this.prepareStyles(styles.svgLogo)} src="images/material-ui-logo.svg"/>
+        <span style={this.prepareStyles(styles.span)}>material ui</span>
       </EnhancedButton>) : null;
 
     return(
@@ -182,49 +196,49 @@ class Master extends React.Component {
           rounded={false}
           style={styles.root}>
           {materialIcon}
-          <div style={styles.container}>
+          <div style={this.prepareStyles(styles.container)}>
             <Tabs
               style={styles.tabs}
               value={this.state.tabIndex}
-              onChange={this._handleTabChange.bind(this)}>
+              onChange={this._handleTabChange}>
               <Tab
                 value="1"
                 label="GETTING STARTED"
                 style={styles.tab}
-                route="get-started" />
+                route="/get-started" />
               <Tab
                 value="2"
                 label="CUSTOMIZATION"
                 style={styles.tab}
-                route="customization"/>
+                route="/customization"/>
               <Tab
                 value="3"
                 label="COMPONENTS"
                 style={styles.tab}
-                route="components"/>
+                route="/components"/>
             </Tabs>
           </div>
         </Paper>
       </div>
     );
-  }
+  },
 
   _getSelectedIndex() {
-    return this.context.router.isActive('get-started') ? '1' :
-      this.context.router.isActive('customization') ? '2' :
-      this.context.router.isActive('components') ? '3' : '0';
-  }
+    return this.props.history.isActive('/get-started') ? '1' :
+      this.props.history.isActive('/customization') ? '2' :
+      this.props.history.isActive('/components') ? '3' : '0';
+  },
 
   _handleTabChange(value, e, tab) {
-    this.context.router.transitionTo(tab.props.route);
+    this.props.history.pushState(null, tab.props.route);
     this.setState({tabIndex: this._getSelectedIndex()});
-  }
+  },
 
   _getAppBar() {
     let title =
-      this.context.router.isActive('get-started') ? 'Get Started' :
-      this.context.router.isActive('customization') ? 'Customization' :
-      this.context.router.isActive('components') ? 'Components' : '';
+      this.props.history.isActive('/get-started') ? 'Get Started' :
+      this.props.history.isActive('/customization') ? 'Customization' :
+      this.props.history.isActive('/components') ? 'Components' : '';
 
     let githubButton = (
       <IconButton
@@ -236,25 +250,17 @@ class Master extends React.Component {
     return (
       <div>
         <AppBar
-          onLeftIconButtonTouchTap={this._onLeftIconButtonTouchTap.bind(this)}
+          onLeftIconButtonTouchTap={this._onLeftIconButtonTouchTap}
           title={title}
           zDepth={0}
           iconElementRight={githubButton}
           style={{position: 'absolute', top: 0}}/>
       </div>);
-  }
+  },
 
   _onLeftIconButtonTouchTap() {
     this.refs.leftNav.toggle();
-  }
-}
-
-Master.contextTypes = {
-  router: React.PropTypes.func
-};
-
-Master.childContextTypes = {
-  muiTheme: React.PropTypes.object
-};
+  },
+});
 
 module.exports = Master;

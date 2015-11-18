@@ -1,7 +1,9 @@
-let React = require('react');
-let StylePropable = require('./mixins/style-propable');
+const React = require('react');
+const StylePropable = require('./mixins/style-propable');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
-let AppCanvas = React.createClass({
+const AppCanvas = React.createClass({
 
   mixins: [StylePropable],
 
@@ -9,11 +11,36 @@ let AppCanvas = React.createClass({
     muiTheme: React.PropTypes.object,
   },
 
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
+  },
+
   render() {
     let styles = {
       height: '100%',
-      backgroundColor: this.context.muiTheme.palette.canvasColor,
+      backgroundColor: this.state.muiTheme.rawTheme.palette.canvasColor,
       WebkitFontSmoothing: 'antialiased',
+      direction: 'ltr',
     };
 
     let newChildren = React.Children.map(this.props.children, (currentChild) => {
@@ -24,9 +51,9 @@ let AppCanvas = React.createClass({
       switch (currentChild.type.displayName) {
         case 'AppBar' :
           return React.cloneElement(currentChild, {
-            style: this.mergeStyles({
+            style: this.mergeStyles(currentChild.props.style, {
               position: 'fixed',
-            }, currentChild.props.style),
+            }),
           });
         default:
           return currentChild;
@@ -34,7 +61,7 @@ let AppCanvas = React.createClass({
     }, this);
 
     return (
-      <div style={styles}>
+      <div style={this.prepareStyles(styles)}>
         {newChildren}
       </div>
     );

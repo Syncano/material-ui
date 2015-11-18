@@ -1,13 +1,26 @@
-let React = require('react/addons');
-let StylePropable = require('./mixins/style-propable');
-let Colors = require('./styles/colors');
+const React = require('react');
+const StylePropable = require('./mixins/style-propable');
+const Colors = require('./styles/colors');
+const DefaultRawTheme = require('./styles/raw-themes/light-raw-theme');
+const ThemeManager = require('./styles/theme-manager');
 
-let Avatar = React.createClass({
+const Avatar = React.createClass({
 
   mixins: [StylePropable],
 
   contextTypes: {
     muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
   },
 
   propTypes: {
@@ -17,6 +30,19 @@ let Avatar = React.createClass({
     size: React.PropTypes.number,
     src: React.PropTypes.string,
     style: React.PropTypes.object,
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  //to update theme inside state whenever a new theme is passed down
+  //from the parent / owner using context
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
   },
 
   getDefaultProps() {
@@ -49,7 +75,7 @@ let Avatar = React.createClass({
     };
 
     if (src) {
-      const borderColor = this.context.muiTheme.component.avatar.borderColor;
+      const borderColor = this.state.muiTheme.avatar.borderColor;
 
       if(borderColor) {
         styles.root = this.mergeStyles(styles.root, {
@@ -59,7 +85,7 @@ let Avatar = React.createClass({
         });
       }
 
-      return <img {...other} src={src} style={this.mergeAndPrefix(styles.root, style)} />;
+      return <img {...other} src={src} style={this.prepareStyles(styles.root, style)} />;
     } else {
       styles.root = this.mergeStyles(styles.root, {
         backgroundColor: backgroundColor,
@@ -78,7 +104,7 @@ let Avatar = React.createClass({
         style: this.mergeStyles(styleIcon, icon.props.style),
       }) : null;
 
-      return <div {...other} style={this.mergeAndPrefix(styles.root, style)}>
+      return <div {...other} style={this.prepareStyles(styles.root, style)}>
         {iconElement}
         {this.props.children}
       </div>;

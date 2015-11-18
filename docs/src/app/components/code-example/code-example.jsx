@@ -1,29 +1,62 @@
-let React = require('react');
+const React = require('react');
 
-let {
+const {
   ClearFix,
   Paper,
   Styles,
 } = require('material-ui');
 
-let {
+const {
   Spacing,
   Typography,
 } = Styles;
 
-let CodeBlock = require('./code-block');
+const CodeBlock = require('./code-block');
+const ThemeManager = Styles.ThemeManager;
+const DefaultRawTheme = Styles.LightRawTheme;
 
+const CodeExample = React.createClass({
 
-class CodeExample extends React.Component {
+  propTypes : {
+    code: React.PropTypes.string.isRequired,
+    layoutSideBySide: React.PropTypes.bool,
+  },
+
+  contextTypes : {
+    muiTheme: React.PropTypes.object,
+  },
+
+  //for passing default theme context to children
+  childContextTypes: {
+    muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext () {
+    return {
+      muiTheme: this.state.muiTheme,
+    };
+  },
+
+  getInitialState () {
+    return {
+      muiTheme: this.context.muiTheme ? this.context.muiTheme : ThemeManager.getMuiTheme(DefaultRawTheme),
+    };
+  },
+
+  componentWillReceiveProps (nextProps, nextContext) {
+    let newMuiTheme = nextContext.muiTheme ? nextContext.muiTheme : this.state.muiTheme;
+    this.setState({muiTheme: newMuiTheme});
+  },
 
   render() {
 
     let {
       children,
       code,
+      layoutSideBySide,
     } = this.props;
 
-    let palette = this.context.muiTheme.palette;
+    let palette = this.state.muiTheme.rawTheme.palette;
     let borderColor = palette.borderColor;
     let canvasColor = palette.canvasColor;
 
@@ -31,8 +64,8 @@ class CodeExample extends React.Component {
       root: {
         backgroundColor: canvasColor,
         marginBottom: 32,
+        overflow: 'hidden',
       },
-
       exampleLabel: {
         color: borderColor,
         padding: 8,
@@ -43,30 +76,22 @@ class CodeExample extends React.Component {
         textTransform: 'uppercase',
         fontWeight: Typography.fontWeightMedium,
       },
-
       exampleBlock: {
         borderRadius: '0 0 2px 0',
         padding: Spacing.desktopGutter,
         margin: 0,
-      }
+        width: layoutSideBySide ? '45%' : null,
+        float: layoutSideBySide ? 'right' : null,
+      },
     };
 
     return (
       <Paper style={styles.root}>
-        <div style={styles.exampleLabel}>example</div>
         <ClearFix style={styles.exampleBlock}>{children}</ClearFix>
-        <CodeBlock>{code}</CodeBlock>
+        <CodeBlock style={styles.codeBlock}>{code}</CodeBlock>
       </Paper>
     );
-  }
-}
-
-CodeExample.propTypes = {
-  code: React.PropTypes.string.isRequired
-};
-
-CodeExample.contextTypes = {
-  muiTheme: React.PropTypes.object
-};
+  },
+});
 
 module.exports = CodeExample;

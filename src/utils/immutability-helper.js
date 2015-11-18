@@ -1,5 +1,5 @@
-const React = require('react/addons');
-const update = React.addons.update;
+const React = require('react');
+const update = require('react-addons-update');
 
 function mergeSingle(objA, objB) {
   if (!objA) return objB;
@@ -33,7 +33,7 @@ module.exports = {
   },
 
   shift(array) {
-    return update(array, {$splice: [[0,1]]});
+    return update(array, {$splice: [[0, 1]]});
   },
 
 };
