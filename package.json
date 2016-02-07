@@ -1,7 +1,7 @@
 {
   "name": "syncano-material-ui",
   "author": "Call-em-all Engineering Team",
-  "version": "0.14.4",
+  "version": "0.14.4-2",
   "description": "Material Design UI components built with React",
   "main": "./lib",
   "scripts": {
