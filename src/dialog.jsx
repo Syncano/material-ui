@@ -8,6 +8,7 @@ import FlatButton from './flat-button';
 import Overlay from './overlay';
 import RenderToLayer from './render-to-layer';
 import Paper from './paper';
+import PropTypes from './utils/prop-types';
 import getMuiTheme from './styles/getMuiTheme';
 import warning from 'warning';
 import deprecated from './utils/deprecatedPropType';
@@ -123,6 +124,8 @@ const DialogInline = React.createClass({
     titleClassName: React.PropTypes.string,
     titleStyle: React.PropTypes.object,
     width: React.PropTypes.any,
+    zDepth: PropTypes.zDepth,
+    transitionEnabled: React.PropTypes.bool,
   },
 
   contextTypes: {
@@ -140,6 +143,13 @@ const DialogInline = React.createClass({
     return {
       muiTheme: this.context.muiTheme || getMuiTheme(),
     };
+  },
+
+  getDefaultProps() {
+    return {
+      zDepth: 4,
+      transitionEnabled: true,
+    }
   },
 
   getChildContext() {
@@ -407,6 +417,8 @@ const DialogInline = React.createClass({
       titleStyle,
       title,
       style,
+      zDepth,
+      transitionEnabled,
     } = this.props;
 
     const styles = this.getStyles();
@@ -438,7 +450,8 @@ const DialogInline = React.createClass({
             >
               <Paper
                 style={styles.paper}
-                zDepth={4}
+                zDepth={zDepth}
+                transitionEnabled={transitionEnabled}
               >
                 {titleElement}
                 <div
